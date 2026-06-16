@@ -70,6 +70,13 @@
             transform: translateY(4px);
             border-bottom-width: 2px;
         }
+        .breathing {
+            animation: breathe 3s ease-in-out infinite;
+        }
+        @keyframes breathe {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.03) translateY(-3px); }
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center justify-center p-4 overflow-x-hidden relative">
@@ -270,7 +277,7 @@
             <div class="flex flex-col md:flex-row items-center justify-center gap-6 w-full max-w-3xl bg-amber-50/50 p-6 rounded-3xl border-2 border-yellow-200">
                 <!-- Teacher Image (Kru Aom) -->
                 <div class="w-40 md:w-48 flex-shrink-0">
-                    <img id="kru-aom-img" src="ChatGPT Image 2 มิ.ย. 2569 23_33_05.png" alt="ครูกิ่ง" class="w-full object-contain drop-shadow-xl rounded-2xl border-4 border-white" onerror="this.onerror=null; this.src='https://placehold.co/200x300/fef08a/854d0e?text=ครูกิ่ง';">
+                    <img id="kru-aom-img" src="ChatGPT Image 2 มิ.ย. 2569 23_33_05.png" alt="ครูกิ่ง" class="w-full object-contain drop-shadow-xl rounded-2xl border-4 border-white breathing" onerror="this.onerror=null; this.src='https://placehold.co/200x300/fef08a/854d0e?text=ครูกิ่ง';">
                     <div class="bg-yellow-400 text-yellow-950 text-sm font-bold py-1 px-3 rounded-full mt-2 shadow">ครูกิ่ง 👩‍🏫</div>
                 </div>
                 <div class="flex-grow text-left max-w-md">
@@ -288,14 +295,14 @@
                     <!-- Mali Avatar option -->
                     <button onclick="selectAvatar('mali')" id="select-mali" class="border-4 border-yellow-300 bg-white hover:bg-yellow-50 rounded-2xl p-4 flex flex-col items-center gap-2 transition-all shadow-md hover:shadow-xl relative overflow-hidden group">
                         <div class="absolute top-2 right-2 bg-green-500 text-white rounded-full px-2 py-0.5 text-xs opacity-0 group-hover:opacity-100 transition-opacity" id="badge-sel-mali">✓ เลือกแล้ว</div>
-                        <img src="ChatGPT Image 2 มิ.ย. 2569 23_33_55.png" alt="น้องมะลิ" class="w-32 h-44 object-contain drop-shadow-md rounded-lg" onerror="this.onerror=null; this.src='https://placehold.co/120x170/fdf2f8/db2777?text=น้องมะลิ';">
+                        <img src="ChatGPT Image 2 มิ.ย. 2569 23_33_55.png" alt="น้องมะลิ" class="w-32 h-44 object-contain drop-shadow-md rounded-lg breathing" onerror="this.onerror=null; this.src='https://placehold.co/120x170/fdf2f8/db2777?text=น้องมะลิ';">
                         <span class="text-lg font-bold text-pink-700">น้องมะลิ 🌸</span>
                         <span class="text-xs text-gray-500">เด็กหญิงชาวเขาผู้น่ารักสดใส</span>
                     </button>
                     <!-- Porti Avatar option -->
                     <button onclick="selectAvatar('porti')" id="select-porti" class="border-4 border-transparent bg-white hover:bg-yellow-50 rounded-2xl p-4 flex flex-col items-center gap-2 transition-all shadow-md hover:shadow-xl relative overflow-hidden group">
                         <div class="absolute top-2 right-2 bg-green-500 text-white rounded-full px-2 py-0.5 text-xs opacity-0 group-hover:opacity-100 transition-opacity" id="badge-sel-porti">✓ เลือกแล้ว</div>
-                        <img src="ChatGPT Image 2 มิ.ย. 2569 23_34_50.png" alt="น้องปอพะ" class="w-32 h-44 object-contain drop-shadow-md rounded-lg" onerror="this.onerror=null; this.src='https://placehold.co/120x170/eff6ff/1d4ed8?text=น้องปอพะ';">
+                        <img src="ChatGPT Image 2 มิ.ย. 2569 23_34_50.png" alt="น้องปอพะ" class="w-32 h-44 object-contain drop-shadow-md rounded-lg breathing" onerror="this.onerror=null; this.src='https://placehold.co/120x170/eff6ff/1d4ed8?text=น้องปอพะ';">
                         <span class="text-lg font-bold text-sky-700">น้องปอพะ 🌀</span>
                         <span class="text-xs text-gray-500">เด็กชายล้านนาผู้รอบรู้ร่าเริง</span>
                     </button>
@@ -1767,8 +1774,12 @@
                 width: 38,
                 height: 52,
                 grounded: false,
-                jumping: false
+                jumping: false,
+                direction: 'right',
+                landTimer: 0
             };
+            player.direction = player.direction || 'right';
+            player.landTimer = player.landTimer || 0;
 
             const collectedBananas = (adventureState && adventureState.collectedBananas) ? adventureState.collectedBananas : 0;
 
@@ -1833,8 +1844,10 @@
             // Left / Right Movement
             if (s.keys.ArrowLeft) {
                 p.vx = -4.5;
+                p.direction = 'left';
             } else if (s.keys.ArrowRight) {
                 p.vx = 4.5;
+                p.direction = 'right';
             } else {
                 p.vx *= 0.82; // smooth friction
             }
@@ -1889,6 +1902,9 @@
                 if (p.x + p.width > plat.x && p.x < plat.x + plat.w) {
                     if (p.y + p.height > plat.y && p.y + p.height - p.vy <= plat.y + 12) {
                         if (p.vy >= 0) { // falling down
+                            if (!p.grounded && p.vy > 1) {
+                                p.landTimer = 10;
+                            }
                             p.y = plat.y - p.height;
                             p.vy = 0;
                             p.grounded = true;
@@ -1913,6 +1929,9 @@
                     // 1. Landing on top of block
                     if (p.y + p.height > block.y && p.y + p.height - p.vy <= block.y + 10) {
                         if (p.vy >= 0) {
+                            if (!p.grounded && p.vy > 1) {
+                                p.landTimer = 10;
+                            }
                             p.y = block.y - p.height;
                             p.vy = 0;
                             p.grounded = true;
@@ -2282,14 +2301,68 @@
             ctx.arc(flagX + 5, s.flagpole.y, 8, 0, Math.PI * 2);
             ctx.fill();
 
-            // Draw character drop shadow for depth
+            // 1. Calculate dynamic scale and rotation (animation effects)
+            let scaleX = 1;
+            let scaleY = 1;
+            let rotation = 0;
+
+            if (p.landTimer && p.landTimer > 0) {
+                // Squash effect on landing
+                const t = p.landTimer / 10; // 1 to 0
+                scaleY = 0.7 + (1 - t) * 0.3; // starts squashed at 0.7, goes to 1
+                scaleX = 1.3 - (1 - t) * 0.3; // starts wide at 1.3, goes to 1
+                p.landTimer--;
+            } else if (!p.grounded) {
+                // In air
+                if (p.vy < 0) {
+                    // Jump stretch
+                    scaleY = 1.15;
+                    scaleX = 0.85;
+                } else {
+                    // Fall stretch
+                    scaleY = 0.95;
+                    scaleX = 1.05;
+                    rotation = p.vx * 0.02; // tilt slightly based on velocity
+                }
+            } else if (Math.abs(p.vx) > 0.1) {
+                // Walking cycle animation
+                const walkCycle = Date.now() * 0.015;
+                rotation = Math.sin(walkCycle) * 0.08; // waddle tilt
+                scaleY = 1 - Math.abs(Math.sin(walkCycle)) * 0.06; // squeeze vertical
+                scaleX = 1 + Math.abs(Math.sin(walkCycle)) * 0.04;
+            } else {
+                // Idle breathing
+                scaleY = 1 + Math.sin(Date.now() * 0.003) * 0.02;
+                scaleX = 1 - Math.sin(Date.now() * 0.003) * 0.01;
+            }
+
+            // Draw character drop shadow for depth (shadow scale scales with player squash)
             ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
             ctx.beginPath();
-            ctx.ellipse(p.x - camX + p.width/2, p.y + p.height - 2, p.width/2 - 2, 4, 0, 0, Math.PI * 2);
+            ctx.ellipse(
+                p.x - camX + p.width / 2, 
+                p.y + p.height - 2, 
+                (p.width / 2 - 2) * scaleX, 
+                4 * scaleY, 
+                0, 0, Math.PI * 2
+            );
             ctx.fill();
 
-            // Draw Player Character
-            ctx.drawImage(s.heroImg, p.x - camX, p.y, p.width, p.height);
+            // Draw Player Character (with flipping and animations)
+            ctx.save();
+            // Translate to center of character feet
+            ctx.translate(p.x - camX + p.width / 2, p.y + p.height);
+            ctx.rotate(rotation);
+            ctx.scale(scaleX, scaleY);
+            
+            // Handle turning around (flip image horizontally)
+            if (p.direction === 'left') {
+                ctx.scale(-1, 1);
+            }
+
+            // Draw centered horizontally, and with feet on the origin (0, 0)
+            ctx.drawImage(s.heroImg, -p.width / 2, -p.height, p.width, p.height);
+            ctx.restore();
 
             // Draw Player Name tag
             ctx.font = 'bold 12px Mali';
