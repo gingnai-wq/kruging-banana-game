@@ -724,6 +724,10 @@
             config: {
                 gasUrl: 'https://script.google.com/macros/s/AKfycbzpoNZfwAMesOorlXvQUyh3UiJ-tAsz_SF1zLBizem-laPMCmg2aIL3hK4wpbdlpIws/exec',
                 taskName: 'เกาะกล้วยหอมจอมพลัง'
+            },
+            heroImages: {
+                mali: null,
+                porti: null
             }
         };
 
@@ -773,6 +777,77 @@
             }
         ];
 
+        function loadAndProcessHeroImage(avatarKey, src) {
+            const img = new Image();
+            img.crossOrigin = "anonymous";
+            img.onload = () => {
+                const w = img.width;
+                const h = img.height;
+                const canvas = document.createElement('canvas');
+                canvas.width = w;
+                canvas.height = h;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                
+                const imgData = ctx.getImageData(0, 0, w, h);
+                const data = imgData.data;
+                const visited = new Uint8Array(w * h);
+                const queue = [];
+                
+                const isWhite = (x, y) => {
+                    const idx = (y * w + x) * 4;
+                    // White threshold check (R, G, B > 240)
+                    return data[idx] > 240 && data[idx + 1] > 240 && data[idx + 2] > 240;
+                };
+                
+                // Add border pixels to flood-fill queue
+                for (let x = 0; x < w; x++) {
+                    if (isWhite(x, 0)) { queue.push(x, 0); visited[x] = 1; }
+                    if (isWhite(x, h - 1)) { queue.push(x, h - 1); visited[(h - 1) * w + x] = 1; }
+                }
+                for (let y = 1; y < h - 1; y++) {
+                    if (isWhite(0, y)) { queue.push(0, y); visited[y * w] = 1; }
+                    if (isWhite(w - 1, y)) { queue.push(w - 1, y); visited[y * w + w - 1] = 1; }
+                }
+                
+                let head = 0;
+                const dx = [1, -1, 0, 0];
+                const dy = [0, 0, 1, -1];
+                
+                while (head < queue.length) {
+                    const cx = queue[head++];
+                    const cy = queue[head++];
+                    
+                    const idx = (cy * w + cx) * 4;
+                    data[idx + 3] = 0; // Transparent
+                    
+                    for (let i = 0; i < 4; i++) {
+                        const nx = cx + dx[i];
+                        const ny = cy + dy[i];
+                        
+                        if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
+                            const nidx = ny * w + nx;
+                            if (!visited[nidx] && isWhite(nx, ny)) {
+                                visited[nidx] = 1;
+                                queue.push(nx, ny);
+                            }
+                        }
+                    }
+                }
+                
+                ctx.putImageData(imgData, 0, 0);
+                
+                const processed = new Image();
+                processed.src = canvas.toDataURL();
+                processed.onload = () => {
+                    state.heroImages[avatarKey] = processed;
+                    const welcomeImg = document.querySelector(`#select-${avatarKey} img`);
+                    if (welcomeImg) welcomeImg.src = processed.src;
+                };
+            };
+            img.src = src;
+        }
+
         // Load configured settings on start
         window.addEventListener('DOMContentLoaded', () => {
             const savedGasUrl = localStorage.getItem('gasUrl');
@@ -785,6 +860,10 @@
             document.getElementById('config-task-name').value = state.config.taskName;
             
             updateConfigLabels();
+            
+            // Preprocess avatar images to remove white backgrounds
+            loadAndProcessHeroImage('mali', 'ChatGPT Image 2 มิ.ย. 2569 23_33_55.png');
+            loadAndProcessHeroImage('porti', 'ChatGPT Image 2 มิ.ย. 2569 23_34_50.png');
         });
 
         function toggleSettingsModal(show) {
@@ -960,9 +1039,12 @@
             if (student.photo) {
                 imgEl.src = student.photo;
             } else {
-                imgEl.src = student.gender === 'female' 
-                  ? 'ChatGPT Image 2 มิ.ย. 2569 23_33_55.png' 
-                  : 'ChatGPT Image 2 มิ.ย. 2569 23_34_50.png';
+                const avatarKey = student.gender === 'female' ? 'mali' : 'porti';
+                imgEl.src = (state.heroImages[avatarKey] && state.heroImages[avatarKey].src)
+                  ? state.heroImages[avatarKey].src
+                  : (student.gender === 'female' 
+                      ? 'ChatGPT Image 2 มิ.ย. 2569 23_33_55.png' 
+                      : 'ChatGPT Image 2 มิ.ย. 2569 23_34_50.png');
             }
             
             // Enable start button
@@ -1058,7 +1140,11 @@
                 
                 // Update speech and avatar image in stage/map previews
                 const heroImg = document.getElementById('current-hero-img');
-                if (heroImg) heroImg.src = 'ChatGPT Image 2 มิ.ย. 2569 23_33_55.png';
+                if (heroImg) {
+                    heroImg.src = (state.heroImages.mali && state.heroImages.mali.src) 
+                      ? state.heroImages.mali.src 
+                      : 'ChatGPT Image 2 มิ.ย. 2569 23_33_55.png';
+                }
                 const heroSpeechName = document.getElementById('current-hero-speech-name');
                 if (heroSpeechName) heroSpeechName.textContent = 'น้องมะลิ 🌸';
                 const heroSpeech = document.getElementById('current-hero-speech');
@@ -1077,7 +1163,11 @@
                 if (badgeMali) badgeMali.classList.remove('opacity-100');
                 
                 const heroImg = document.getElementById('current-hero-img');
-                if (heroImg) heroImg.src = 'ChatGPT Image 2 มิ.ย. 2569 23_34_50.png';
+                if (heroImg) {
+                    heroImg.src = (state.heroImages.porti && state.heroImages.porti.src) 
+                      ? state.heroImages.porti.src 
+                      : 'ChatGPT Image 2 มิ.ย. 2569 23_34_50.png';
+                }
                 const heroSpeechName = document.getElementById('current-hero-speech-name');
                 if (heroSpeechName) heroSpeechName.textContent = 'น้องปอพะ 🌀';
                 const heroSpeech = document.getElementById('current-hero-speech');
@@ -1134,9 +1224,11 @@
         // Stage setup helper
         function setupStage(stageIdx) {
             state.stageData = {};
-            const heroAvatarSrc = state.selectedAvatar === 'mali' 
-                ? 'ChatGPT Image 2 มิ.ย. 2569 23_33_55.png' 
-                : 'ChatGPT Image 2 มิ.ย. 2569 23_34_50.png';
+            const heroAvatarSrc = (state.heroImages[state.selectedAvatar] && state.heroImages[state.selectedAvatar].src)
+                ? state.heroImages[state.selectedAvatar].src
+                : (state.selectedAvatar === 'mali' 
+                    ? 'ChatGPT Image 2 มิ.ย. 2569 23_33_55.png' 
+                    : 'ChatGPT Image 2 มิ.ย. 2569 23_34_50.png');
                 
             if (stageIdx === 1) {
                 // Energy Bar Stage
@@ -1565,9 +1657,12 @@
                 if (state.currentUser.photo) {
                     certImg.src = state.currentUser.photo;
                 } else {
-                    certImg.src = state.currentUser.gender === 'female' 
-                      ? 'ChatGPT Image 2 มิ.ย. 2569 23_33_55.png' 
-                      : 'ChatGPT Image 2 มิ.ย. 2569 23_34_50.png';
+                    const avatarKey = state.currentUser.gender === 'female' ? 'mali' : 'porti';
+                    certImg.src = (state.heroImages[avatarKey] && state.heroImages[avatarKey].src)
+                      ? state.heroImages[avatarKey].src
+                      : (state.currentUser.gender === 'female' 
+                          ? 'ChatGPT Image 2 มิ.ย. 2569 23_33_55.png' 
+                          : 'ChatGPT Image 2 มิ.ย. 2569 23_34_50.png');
                 }
             }
             
@@ -1717,11 +1812,13 @@
                 bindTouch('ctrl-jump', 'ArrowUp');
             }
 
-            // Load Hero image
-            const heroImg = new Image();
-            heroImg.src = state.selectedAvatar === 'mali' 
-                ? 'ChatGPT Image 2 มิ.ย. 2569 23_33_55.png' 
-                : 'ChatGPT Image 2 มิ.ย. 2569 23_34_50.png';
+            // Load Hero image (use preprocessed transparent version if available)
+            const heroImg = state.heroImages[state.selectedAvatar] || new Image();
+            if (!heroImg.src) {
+                heroImg.src = state.selectedAvatar === 'mali' 
+                    ? 'ChatGPT Image 2 มิ.ย. 2569 23_33_55.png' 
+                    : 'ChatGPT Image 2 มิ.ย. 2569 23_34_50.png';
+            }
 
             const levelWidth = 3200;
             const groundY = 340;
