@@ -825,8 +825,12 @@
             }
         };
 
-        // Thai Text-to-Speech helpers using Web Speech API with asynchronous voice loading fix
+        // Thai Text-to-Speech helpers using Web Speech API with Google Translate TTS fallback
         let thaiVoice = null;
+        let ttsAudio = null;
+        let ttsQueue = [];
+        let ttsIndex = 0;
+
         function loadVoices() {
             if ('speechSynthesis' in window) {
                 const voices = window.speechSynthesis.getVoices();
@@ -838,23 +842,88 @@
             window.speechSynthesis.onvoiceschanged = loadVoices;
         }
 
+        function splitTextIntoChunks(text, maxLen) {
+            // Split text by punctuation or spaces, keeping chunks under maxLen
+            const parts = text.split(/([\s.,!?;|()（）])/);
+            const chunks = [];
+            let currentChunk = "";
+            
+            for (let part of parts) {
+                if (!part) continue;
+                if (currentChunk.length + part.length > maxLen) {
+                    if (currentChunk.trim().length > 0) {
+                        chunks.push(currentChunk.trim());
+                    }
+                    currentChunk = part;
+                } else {
+                    currentChunk += part;
+                }
+            }
+            if (currentChunk.trim().length > 0) {
+                chunks.push(currentChunk.trim());
+            }
+            
+            // If any chunk is still longer than maxLen, force split it
+            const finalChunks = [];
+            for (let chunk of chunks) {
+                if (chunk.length <= maxLen) {
+                    finalChunks.push(chunk);
+                } else {
+                    let temp = chunk;
+                    while (temp.length > maxLen) {
+                        finalChunks.push(temp.substring(0, maxLen));
+                        temp = temp.substring(maxLen);
+                    }
+                    if (temp.length > 0) {
+                        finalChunks.push(temp);
+                    }
+                }
+            }
+            return finalChunks;
+        }
+
+        function playNextTTSChunk() {
+            if (ttsIndex >= ttsQueue.length) {
+                return;
+            }
+            const chunk = ttsQueue[ttsIndex];
+            ttsIndex++;
+            
+            const url = 'https://translate.google.com/translate_tts?ie=UTF-8&tl=th&client=tw-ob&q=' + encodeURIComponent(chunk);
+            ttsAudio = new Audio(url);
+            ttsAudio.play().catch(err => {
+                console.warn("Google TTS audio play failed:", err);
+                playNextTTSChunk();
+            });
+            ttsAudio.onended = function() {
+                playNextTTSChunk();
+            };
+        }
+
         function speakThai(text) {
-            if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel();
-                
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = 'th-TH';
-                utterance.rate = 1.05; // natural rate
-                utterance.pitch = 1.05; // natural pitch
-                
-                if (!thaiVoice) {
-                    loadVoices();
-                }
-                if (thaiVoice) {
+            // Always stop any current speech first
+            stopSpeaking();
+            
+            if (!thaiVoice) {
+                loadVoices();
+            }
+
+            if (thaiVoice) {
+                // Use native Web Speech Synthesis if Thai voice is available
+                if ('speechSynthesis' in window) {
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.lang = 'th-TH';
+                    utterance.rate = 1.05;
+                    utterance.pitch = 1.05;
                     utterance.voice = thaiVoice;
+                    window.speechSynthesis.speak(utterance);
                 }
-                
-                window.speechSynthesis.speak(utterance);
+            } else {
+                // Fallback to Google Translate TTS Audio API if no native Thai voice is installed
+                const chunks = splitTextIntoChunks(text, 150);
+                ttsQueue = chunks;
+                ttsIndex = 0;
+                playNextTTSChunk();
             }
         }
 
@@ -862,6 +931,12 @@
             if ('speechSynthesis' in window) {
                 window.speechSynthesis.cancel();
             }
+            if (ttsAudio) {
+                ttsAudio.pause();
+                ttsAudio = null;
+            }
+            ttsQueue = [];
+            ttsIndex = 0;
         }
 
         function speakKnowledge() {
