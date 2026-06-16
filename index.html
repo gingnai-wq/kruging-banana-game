@@ -1357,7 +1357,7 @@
         };
 
         // Show Map part info
-        function showInfo(partIdx) {
+        function showInfo(partIdx, autoSpeak = true) {
             playSound('click');
             const knowledge = bananaKnowledge.find(k => k.index === partIdx);
             if (!knowledge) return;
@@ -1368,7 +1368,9 @@
             document.getElementById('info-funfact-text').textContent = knowledge.funfact;
             
             // Auto-speak the knowledge details
-            speakKnowledge();
+            if (autoSpeak) {
+                speakKnowledge();
+            }
             
             const playBtn = document.getElementById('btn-enter-minigame');
             const stageIdx = partToStageMap[partIdx];
@@ -2262,10 +2264,11 @@
                                 block.bounceTimer = 10;
                             }
                             
-                            // Show the corresponding knowledge card and speak
+                            // Show the corresponding knowledge card and speak (only auto-speak if stage is already completed)
                             const partIdx = stageToPartMap[block.stageIdx];
                             if (partIdx) {
-                                showInfo(partIdx);
+                                const isCompleted = state.badges[block.stageIdx - 1];
+                                showInfo(partIdx, isCompleted);
                             }
                             
                             // Trigger mini-game if not already completed
