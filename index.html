@@ -882,7 +882,9 @@
             return finalChunks;
         }
 
-        function playNextTTSChunk() {
+        let useGoogleTTS = true;
+
+        function playNextTTSChunk(originalText) {
             if (ttsIndex >= ttsQueue.length) {
                 return;
             }
@@ -891,39 +893,65 @@
             
             const url = 'https://translate.google.com/translate_tts?ie=UTF-8&tl=th&client=tw-ob&q=' + encodeURIComponent(chunk);
             ttsAudio = new Audio(url);
-            ttsAudio.play().catch(err => {
-                console.warn("Google TTS audio play failed:", err);
-                playNextTTSChunk();
-            });
-            ttsAudio.onended = function() {
-                playNextTTSChunk();
+            
+            let fallbackTimeout = setTimeout(() => {
+                console.warn("Google TTS timed out, falling back to native SpeechSynthesis.");
+                useGoogleTTS = false;
+                stopSpeaking();
+                playNativeSpeech(originalText);
+            }, 3500);
+
+            ttsAudio.onerror = function() {
+                clearTimeout(fallbackTimeout);
+                console.warn("Google TTS audio load failed, falling back to native SpeechSynthesis.");
+                useGoogleTTS = false;
+                stopSpeaking();
+                playNativeSpeech(originalText);
             };
+            
+            ttsAudio.play().then(() => {
+                clearTimeout(fallbackTimeout);
+            }).catch(err => {
+                clearTimeout(fallbackTimeout);
+                console.warn("Google TTS play failed, falling back to native SpeechSynthesis:", err);
+                useGoogleTTS = false;
+                stopSpeaking();
+                playNativeSpeech(originalText);
+            });
+            
+            ttsAudio.onended = function() {
+                playNextTTSChunk(originalText);
+            };
+        }
+
+        function playNativeSpeech(text) {
+            if ('speechSynthesis' in window) {
+                if (!thaiVoice) {
+                    loadVoices();
+                }
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'th-TH';
+                utterance.rate = 1.05;
+                utterance.pitch = 1.05;
+                if (thaiVoice) {
+                    utterance.voice = thaiVoice;
+                }
+                window.speechSynthesis.speak(utterance);
+            }
         }
 
         function speakThai(text) {
             // Always stop any current speech first
             stopSpeaking();
             
-            if (!thaiVoice) {
-                loadVoices();
-            }
-
-            if (thaiVoice) {
-                // Use native Web Speech Synthesis if Thai voice is available
-                if ('speechSynthesis' in window) {
-                    const utterance = new SpeechSynthesisUtterance(text);
-                    utterance.lang = 'th-TH';
-                    utterance.rate = 1.05;
-                    utterance.pitch = 1.05;
-                    utterance.voice = thaiVoice;
-                    window.speechSynthesis.speak(utterance);
-                }
-            } else {
-                // Fallback to Google Translate TTS Audio API if no native Thai voice is installed
+            if (useGoogleTTS) {
+                // Try Google Translate TTS first for guaranteed Thai voice
                 const chunks = splitTextIntoChunks(text, 150);
                 ttsQueue = chunks;
                 ttsIndex = 0;
-                playNextTTSChunk();
+                playNextTTSChunk(text);
+            } else {
+                playNativeSpeech(text);
             }
         }
 
