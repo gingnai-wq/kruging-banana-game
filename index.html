@@ -77,6 +77,60 @@
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.03) translateY(-3px); }
         }
+        @media print {
+            body {
+                background: white !important;
+                background-image: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            body > *:not(#main-game-container) {
+                display: none !important;
+            }
+            #main-game-container {
+                border: none !important;
+                background: transparent !important;
+                box-shadow: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                max-width: 100% !important;
+                width: 100% !important;
+                min-height: 0 !important;
+            }
+            #main-game-container > *:not(#screen-victory) {
+                display: none !important;
+            }
+            #screen-victory {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                width: 100% !important;
+            }
+            #screen-victory > *:not(#victory-certificate) {
+                display: none !important;
+            }
+            #victory-certificate {
+                display: flex !important;
+                position: relative !important;
+                left: auto !important;
+                top: auto !important;
+                transform: none !important;
+                width: 100% !important;
+                max-width: 600px !important;
+                border: 8px solid #fbbf24 !important;
+                background-color: #fdfbeb !important;
+                box-shadow: none !important;
+                margin: 40px auto !important;
+                padding: 30px !important;
+                border-radius: 24px !important;
+                page-break-inside: avoid !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center justify-center p-4 overflow-x-hidden relative">
@@ -138,7 +192,7 @@
     </script>
 
     <!-- Main Game Container -->
-    <div class="w-full max-w-5xl bg-white/95 backdrop-blur-sm rounded-3xl border-8 border-yellow-400 shadow-2xl p-4 md:p-8 relative min-h-[650px] flex flex-col justify-between z-10">
+    <div id="main-game-container" class="w-full max-w-5xl bg-white/95 backdrop-blur-sm rounded-3xl border-8 border-yellow-400 shadow-2xl p-4 md:p-8 relative min-h-[650px] flex flex-col justify-between z-10">
         
         <!-- Header / Progress & Badge Section -->
         <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-6 border-b-4 border-dashed border-yellow-200 pb-4">
@@ -154,12 +208,12 @@
                 <div class="flex items-center gap-2 bg-yellow-100 px-4 py-2 rounded-full border-2 border-yellow-300">
                     <span class="text-xs font-bold text-yellow-800">ตราประทับ:</span>
                     <div class="flex gap-2" id="badge-container">
-                        <span id="badge-1" class="grayscale opacity-30 text-xl transition-all duration-300" title="เครือกล้วย (ด่านที่ 1)">🍌</span>
-                        <span id="badge-2" class="grayscale opacity-30 text-xl transition-all duration-300" title="เปลือกกล้วยและกาบใบ (ด่านที่ 2)">✨</span>
-                        <span id="badge-3" class="grayscale opacity-30 text-xl transition-all duration-300" title="ใบกล้วย (ด่านที่ 3)">🍃</span>
-                        <span id="badge-4" class="grayscale opacity-30 text-xl transition-all duration-300" title="ลำต้นเทียม (ด่านที่ 4)">🛶</span>
-                        <span id="badge-5" class="grayscale opacity-30 text-xl transition-all duration-300" title="หน่อกล้วย (ด่านที่ 5)">🌱</span>
-                        <span id="badge-6" class="grayscale opacity-30 text-xl transition-all duration-300" title="หัวปลี (ด่านที่ 6)">🌸</span>
+                        <span id="badge-1" onclick="showInfo(4)" class="cursor-pointer hover:scale-110 grayscale opacity-30 text-xl transition-all duration-300" title="เครือกล้วย (ด่านที่ 1)">🍌</span>
+                        <span id="badge-2" onclick="showInfo(6)" class="cursor-pointer hover:scale-110 grayscale opacity-30 text-xl transition-all duration-300" title="เปลือกกล้วยและกาบใบ (ด่านที่ 2)">✨</span>
+                        <span id="badge-3" onclick="showInfo(1)" class="cursor-pointer hover:scale-110 grayscale opacity-30 text-xl transition-all duration-300" title="ใบกล้วย (ด่านที่ 3)">🍃</span>
+                        <span id="badge-4" onclick="showInfo(2)" class="cursor-pointer hover:scale-110 grayscale opacity-30 text-xl transition-all duration-300" title="ลำต้นเทียม (ด่านที่ 4)">🛶</span>
+                        <span id="badge-5" onclick="showInfo(3)" class="cursor-pointer hover:scale-110 grayscale opacity-30 text-xl transition-all duration-300" title="หน่อกล้วย (ด่านที่ 5)">🌱</span>
+                        <span id="badge-6" onclick="showInfo(5)" class="cursor-pointer hover:scale-110 grayscale opacity-30 text-xl transition-all duration-300" title="หัวปลี (ด่านที่ 6)">🌸</span>
                     </div>
                 </div>
                 <!-- Settings Button for Teacher -->
@@ -281,7 +335,7 @@
                     <div class="bg-yellow-400 text-yellow-950 text-sm font-bold py-1 px-3 rounded-full mt-2 shadow">ครูกิ่ง 👩‍🏫</div>
                 </div>
                 <div class="flex-grow text-left max-w-md">
-                    <h2 class="text-2xl md:text-3xl font-bold text-yellow-800 mb-2">ยินดีต้อนรับจ้า!</h2>
+                    <h2 onclick="triggerScreenSpeech('screen-welcome')" class="text-2xl md:text-3xl font-bold text-yellow-800 mb-2 cursor-pointer hover:scale-[1.02] transition-transform flex items-center gap-2 justify-center md:justify-start">ยินดีต้อนรับจ้า! <span class="text-lg">🔊</span></h2>
                     <p class="text-gray-700 text-sm leading-relaxed mb-4">
                         สวัสดีจ้าเด็กๆ ! วันนี้ครูกิ่งจะพาทุกคนไปตะลุยเรียนรู้องค์ประกอบและคุณสมบัติอันสุดยอดของ **ต้นกล้วยวิเศษ** กันค่ะ! ก่อนอื่น เลือกฮีโร่ตัวการ์ตูนที่จะร่วมผจญภัยไปกับเราได้เลยจ้า (สลับเปลี่ยนได้ตลอดนะจ๊ะ)
                     </p>
@@ -348,10 +402,50 @@
                     <!-- Jump button -->
                     <button id="ctrl-jump" class="w-20 h-20 bg-emerald-400 hover:bg-emerald-500 border-b-6 border-emerald-600 active:border-b-2 text-white font-bold rounded-full text-3xl flex items-center justify-center shadow-lg transition-all pixar-3d-btn select-none">⬆️</button>
                 </div>
-
                 <!-- Keyboard Instructions -->
                 <div class="text-[11px] text-gray-500 mt-2 font-bold hidden sm:block">
                     ⌨️ วิธีเล่นบนคอมพิวเตอร์: เดินใช้ปุ่มลูกศร ซ้าย-ขวา ◀️ ▶️ | กระโดดใช้ปุ่ม Spacebar หรือปุ่มลูกศรขึ้น ⬆️
+                </div>
+            </div>
+
+            <!-- Interactive Knowledge & Minigame Panel -->
+            <div id="knowledge-panel" class="w-full max-w-4xl bg-yellow-50 border-4 border-yellow-400 rounded-3xl p-5 shadow-lg flex flex-col md:flex-row gap-6 items-center justify-between mt-4">
+                <div class="flex-grow text-left w-full">
+                    <!-- Quick-Links for all 7 parts of Banana Tree -->
+                    <div class="flex flex-wrap gap-1.5 mb-3 border-b border-dashed border-yellow-200 pb-2">
+                        <span class="text-xs font-bold text-yellow-800 mr-1 flex items-center">🔍 ส่วนต่าง ๆ:</span>
+                        <button onclick="showInfo(4)" class="bg-yellow-200 hover:bg-yellow-300 text-yellow-900 text-[10px] font-bold px-2 py-0.5 rounded-lg transition-all shadow-sm">ด่าน 1 ผลกล้วย 🍌</button>
+                        <button onclick="showInfo(6)" class="bg-yellow-200 hover:bg-yellow-300 text-yellow-900 text-[10px] font-bold px-2 py-0.5 rounded-lg transition-all shadow-sm">ด่าน 2 เปลือก/กาบ 🍂</button>
+                        <button onclick="showInfo(1)" class="bg-yellow-200 hover:bg-yellow-300 text-yellow-900 text-[10px] font-bold px-2 py-0.5 rounded-lg transition-all shadow-sm">ด่าน 3 ใบกล้วย 🍃</button>
+                        <button onclick="showInfo(2)" class="bg-yellow-200 hover:bg-yellow-300 text-yellow-900 text-[10px] font-bold px-2 py-0.5 rounded-lg transition-all shadow-sm">ด่าน 4 ลำต้นเทียม 🪵</button>
+                        <button onclick="showInfo(3)" class="bg-yellow-200 hover:bg-yellow-300 text-yellow-900 text-[10px] font-bold px-2 py-0.5 rounded-lg transition-all shadow-sm">ด่าน 5 หน่อกล้วย 🌱</button>
+                        <button onclick="showInfo(5)" class="bg-yellow-200 hover:bg-yellow-300 text-yellow-900 text-[10px] font-bold px-2 py-0.5 rounded-lg transition-all shadow-sm">ด่าน 6 หัวปลี 🌸</button>
+                        <button onclick="showInfo(7)" class="bg-amber-200 hover:bg-amber-300 text-amber-950 text-[10px] font-bold px-2 py-0.5 rounded-lg transition-all shadow-sm">ราก/เหง้ากล้วย 🪵</button>
+                    </div>
+
+                    <div class="flex items-center gap-3 mb-2">
+                        <h4 id="info-title" class="text-base md:text-lg font-bold text-yellow-800">💡 เรียนรู้ส่วนประกอบต้นกล้วย</h4>
+                        <button onclick="speakKnowledge()" class="bg-yellow-200 hover:bg-yellow-300 text-yellow-950 px-3 py-1 rounded-full text-xs font-bold transition-all flex items-center gap-1 shadow-sm" title="ฟังเสียงบรรยาย">
+                            🔊 ฟังความรู้
+                        </button>
+                    </div>
+                    <p id="info-description" class="text-xs text-gray-700 leading-relaxed">
+                        ลองใช้ตัวละครเดินชนหรือโหม่งกล่องปริศนาเครื่องหมายคำถาม (?) บนเกาะ หรือคลิกปุ่มเลือกชิ้นส่วนต่าง ๆ ด้านบน เพื่อศึกษาข้อมูลความรู้พฤกษศาสตร์ของกล้วยน้ำว้าได้เลยจ้า!
+                    </p>
+                    <div id="info-funfact" class="hidden mt-3 bg-white p-3 rounded-2xl border border-yellow-200 shadow-inner">
+                        <p class="text-xs text-yellow-950 font-bold">📌 รู้หรือไม่? (Fun Fact):</p>
+                        <p id="info-funfact-text" class="text-[11px] text-gray-600 mt-0.5"></p>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons: Enter Minigame or Go to Victory -->
+                <div class="flex flex-col gap-3 min-w-[200px] w-full md:w-auto">
+                    <button id="btn-enter-minigame" onclick="enterSubgame()" disabled class="w-full bg-gray-300 text-gray-500 font-bold py-3 px-5 rounded-2xl text-xs border border-gray-400 cursor-not-allowed transition-all">
+                        🎮 เข้าสู่มินิเกม
+                    </button>
+                    <button id="btn-to-victory" onclick="showVictory()" class="hidden w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-5 rounded-2xl text-xs border-b-4 border-emerald-700 active:border-b-0 transition-all shadow bounce-hover text-center">
+                        🏆 ไปรับเกียรติบัตรเสร็จสมบูรณ์!
+                    </button>
                 </div>
             </div>
         </div>
@@ -359,7 +453,7 @@
         <!-- SCREEN 3: STAGE 1 - เครือกล้วย (ป้อนพลังงาน) -->
         <div id="stage-1" class="hidden flex-col items-center gap-6">
             <div class="text-center">
-                <span class="bg-yellow-100 text-yellow-800 text-sm font-bold px-3 py-1 rounded-full border border-yellow-300">ด่านที่ 1: เครือกล้วยแสนพรรณราย 🍌</span>
+                <span onclick="triggerScreenSpeech('stage-1')" class="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 text-sm font-bold px-3 py-1 rounded-full border border-yellow-300 cursor-pointer transition-all flex items-center gap-1.5 justify-center inline-flex select-none">ด่านที่ 1: เครือกล้วยแสนพรรณราย 🍌 <span class="text-[10px] bg-yellow-200 text-yellow-900 px-1.5 py-0.5 rounded-full">🔊 ฟังเสียงบรรยาย</span></span>
                 <h3 class="text-2xl font-bold text-yellow-800 mt-2">เติมพลังชีวิตให้ตัวละครด้วยกล้วยแสนหวาน!</h3>
                 <p class="text-gray-600 text-sm mt-1">ผลกล้วยจะอยู่รวมกันเป็นเครือ แต่ละชั้นเรียกว่า "หวี" ผลกล้วยให้พลังงานสูงและมีสารทริปโตเฟนช่วยกระตุ้นสารแห่งความสุข (Serotonin)</p>
             </div>
@@ -396,7 +490,7 @@
         <!-- SCREEN 4: STAGE 2 - เปลือกกล้วยและกาบใบ (รักษ์สิ่งแวดล้อม) -->
         <div id="stage-2" class="hidden flex-col items-center gap-6">
             <div class="text-center">
-                <span class="bg-orange-100 text-orange-800 text-sm font-bold px-3 py-1 rounded-full border border-orange-300">ด่านที่ 2: เปลือกกล้วยและกาบใบสุดเจ๋ง ✨</span>
+                <span onclick="triggerScreenSpeech('stage-2')" class="bg-orange-100 hover:bg-orange-200 text-orange-800 text-sm font-bold px-3 py-1 rounded-full border border-orange-300 cursor-pointer transition-all flex items-center gap-1.5 justify-center inline-flex select-none">ด่านที่ 2: เปลือกกล้วยและกาบใบสุดเจ๋ง ✨ <span class="text-[10px] bg-orange-200 text-orange-900 px-1.5 py-0.5 rounded-full">🔊 ฟังเสียงบรรยาย</span></span>
                 <h3 class="text-2xl font-bold text-orange-800 mt-2">แปรรูปเปลือกและกาบใบให้เป็นประโยชน์</h3>
                 <p class="text-gray-600 text-sm mt-1">ด้านในเปลือกกล้วยมีสารลูทีนช่วยถูทำความสะอาดรองเท้า ส่วนกาบใบมีเส้นใยเหนียวใช้ทำปุ๋ยบำรุงดินได้เป็นอย่างดี!</p>
             </div>
@@ -428,7 +522,7 @@
         <!-- SCREEN 5: STAGE 3 - ใบกล้วยจอมประดิษฐ์ (งานครัวหอมกรุ่น) -->
         <div id="stage-3" class="hidden flex-col items-center gap-6">
             <div class="text-center">
-                <span class="bg-emerald-100 text-emerald-800 text-sm font-bold px-3 py-1 rounded-full border border-emerald-300">ด่านที่ 3: ใบกล้วยจอมประดิษฐ์ 🍃</span>
+                <span onclick="triggerScreenSpeech('stage-3')" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-800 text-sm font-bold px-3 py-1 rounded-full border border-emerald-300 cursor-pointer transition-all flex items-center gap-1.5 justify-center inline-flex select-none">ด่านที่ 3: ใบกล้วยจอมประดิษฐ์ 🍃 <span class="text-[10px] bg-emerald-200 text-emerald-900 px-1.5 py-0.5 rounded-full">🔊 ฟังเสียงบรรยาย</span></span>
                 <h3 class="text-2xl font-bold text-emerald-800 mt-2">ประดิษฐ์ขนมไทยห่อใบตอง (ข้าวต้มมัด)</h3>
                 <p class="text-gray-600 text-sm mt-1">ใบตองมีความเหนียวนุ่ม มีแว็กซ์ธรรมชาติกันน้ำได้ดี และมีสารหอมระเหยช่วยเติมกลิ่นหอมในขนมไทย</p>
             </div>
@@ -468,7 +562,7 @@
         <!-- SCREEN 6: STAGE 4 - ลำต้นเทียม (แพรอยน้ำล้านนา) -->
         <div id="stage-4" class="hidden flex-col items-center gap-6">
             <div class="text-center">
-                <span class="bg-amber-100 text-amber-800 text-sm font-bold px-3 py-1 rounded-full border border-amber-300">ด่านที่ 4: ลำต้นเทียมแสนลอยน้ำ 🛶</span>
+                <span onclick="triggerScreenSpeech('stage-4')" class="bg-amber-100 hover:bg-amber-200 text-amber-800 text-sm font-bold px-3 py-1 rounded-full border border-amber-300 cursor-pointer transition-all flex items-center gap-1.5 justify-center inline-flex select-none">ด่านที่ 4: ลำต้นเทียมแสนลอยน้ำ 🛶 <span class="text-[10px] bg-amber-200 text-amber-900 px-1.5 py-0.5 rounded-full">🔊 ฟังเสียงบรรยาย</span></span>
                 <h3 class="text-2xl font-bold text-amber-800 mt-2">ประกอบแพหยวกกล้วยพาสัตว์เลี้ยงล่องแก่ง</h3>
                 <p class="text-gray-600 text-sm mt-1">กาบกล้วยที่ห่อรวมตัวเป็นลำต้นเทียมมีช่องโพรงอากาศจำนวนมาก ช่วยสร้างแรงลอยน้ำได้อย่างวิเศษ!</p>
             </div>
@@ -506,7 +600,7 @@
         <!-- SCREEN 7: STAGE 5 - หน่อกล้วยเจริญเติบโต (เก่งรักษ์ธรรมชาติ) -->
         <div id="stage-5" class="hidden flex-col items-center gap-6">
             <div class="text-center">
-                <span class="bg-lime-100 text-lime-800 text-sm font-bold px-3 py-1 rounded-full border border-lime-300">ด่านที่ 5: หน่อกล้วยแสนรัก 🌱</span>
+                <span onclick="triggerScreenSpeech('stage-5')" class="bg-lime-100 hover:bg-lime-200 text-lime-800 text-sm font-bold px-3 py-1 rounded-full border border-lime-300 cursor-pointer transition-all flex items-center gap-1.5 justify-center inline-flex select-none">ด่านที่ 5: หน่อกล้วยแสนรัก 🌱 <span class="text-[10px] bg-lime-200 text-lime-900 px-1.5 py-0.5 rounded-full">🔊 ฟังเสียงบรรยาย</span></span>
                 <h3 class="text-2xl font-bold text-lime-800 mt-2">วัฏจักรชีวภาพ รดน้ำพรวนดินหน่อกล้วยให้โต</h3>
                 <p class="text-gray-600 text-sm mt-1">หน่อกล้วยงอกจากตาของโคนเหง้าใต้ดิน สามารถเติบโตอย่างรวดเร็วเป็นต้นใหญ่ที่สมบูรณ์ทดแทนต้นแม่!</p>
             </div>
@@ -563,7 +657,7 @@
         <!-- SCREEN 8: STAGE 6 - หัวปลีกล้วย (ทำครัวทำอาหารแสนอร่อย) -->
         <div id="stage-6" class="hidden flex-col items-center gap-6">
             <div class="text-center">
-                <span class="bg-fuchsia-100 text-fuchsia-800 text-sm font-bold px-3 py-1 rounded-full border border-fuchsia-300">ด่านที่ 6: หัวปลีกล้วยแสนโอชา 🌸</span>
+                <span onclick="triggerScreenSpeech('stage-6')" class="bg-fuchsia-100 hover:bg-fuchsia-200 text-fuchsia-800 text-sm font-bold px-3 py-1 rounded-full border border-fuchsia-300 cursor-pointer transition-all flex items-center gap-1.5 justify-center inline-flex select-none">ด่านที่ 6: หัวปลีกล้วยแสนโอชา 🌸 <span class="text-[10px] bg-fuchsia-200 text-fuchsia-900 px-1.5 py-0.5 rounded-full">🔊 ฟังเสียงบรรยาย</span></span>
                 <h3 class="text-2xl font-bold text-fuchsia-800 mt-2">หั่นหัวปลีเตรียมต้มยำแกงส้มแสนอร่อย</h3>
                 <p class="text-gray-600 text-sm mt-1">หัวปลีคือส่วนที่เป็นช่อดอก มีแคลเซียม ธาตุเหล็ก และไฟเบอร์สูงมาก ช่วยลดน้ำตาลในเลือดและบำรุงร่างกาย!</p>
             </div>
@@ -610,7 +704,7 @@
         <!-- SCREEN 9: VICTORY / CERTIFICATE SCREEN -->
         <div id="screen-victory" class="hidden flex-col items-center justify-center text-center gap-6 py-4">
             <div class="floating text-7xl">🏆🌟🍌🐒🌟🏆</div>
-            <h2 class="text-3xl md:text-4xl font-bold text-yellow-800">ขอปรบมือให้คนเก่งของเรา!</h2>
+            <h2 onclick="triggerScreenSpeech('screen-victory')" class="text-3xl md:text-4xl font-bold text-yellow-800 cursor-pointer hover:scale-[1.02] transition-transform flex items-center gap-2 justify-center">ขอปรบมือให้คนเก่งของเรา! <span class="text-xl">🔊</span></h2>
             <p class="text-md text-gray-700 max-w-xl leading-relaxed">
                 เด็กๆ ได้ร่วมเรียนรู้องค์ประกอบ ประโยชน์ และคุณค่าทางธรรมชาติของกล้วยน้ำว้าวิเศษครบถ้วนทั้ง 6 ด่าน เรียบร้อยแล้วค่ะ! สมบูรณ์แบบในฐานะผู้พิทักษ์ต้นกล้วย
             </p>
@@ -730,6 +824,70 @@
                 porti: null
             }
         };
+
+        // Thai Text-to-Speech helpers using Web Speech API
+        function speakThai(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'th-TH';
+                utterance.rate = 1.05; // natural rate
+                utterance.pitch = 1.05; // natural pitch
+                
+                const voices = window.speechSynthesis.getVoices();
+                const thaiVoice = voices.find(voice => voice.lang.includes('th') || voice.lang.includes('TH'));
+                if (thaiVoice) utterance.voice = thaiVoice;
+                
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function stopSpeaking() {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+            }
+        }
+
+        function speakKnowledge() {
+            const title = document.getElementById('info-title').textContent;
+            const desc = document.getElementById('info-description').textContent;
+            const funfact = document.getElementById('info-funfact-text').textContent;
+            
+            if (desc.includes('ลองใช้ตัวละครเดินชนหรือโหม่งกล่อง')) {
+                speakThai("ลองใช้ตัวละครเดินชนหรือโหม่งกล่องปริศนาเครื่องหมายคำถามบนเกาะ หรือคลิกส่วนต่าง ๆ เพื่อศึกษาข้อมูลความรู้ของกล้วยน้ำว้าได้เลยจ้า");
+                return;
+            }
+            
+            // Remove emojis from title for cleaner speech
+            const cleanTitle = title.replace(/[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF]/g, "").trim();
+            let textToSpeak = `${cleanTitle}. ${desc}`;
+            if (funfact) {
+                textToSpeak += `. รู้หรือไม่. ${funfact}`;
+            }
+            speakThai(textToSpeak);
+        }
+
+        function triggerScreenSpeech(screenId) {
+            if (screenId === 'screen-welcome') {
+                speakThai("สวัสดีจ้าเด็กๆ ! วันนี้ครูกิ่งจะพาทุกคนไปตะลุยเรียนรู้องค์ประกอบและคุณสมบัติอันสุดยอดของต้นกล้วยวิเศษกันค่ะ! ก่อนอื่น เลือกตัวละครการ์ตูนที่จะร่วมผจญภัยไปกับเราได้เลยจ้า");
+            } else if (screenId === 'screen-victory') {
+                speakThai("ขอปรบมือให้คนเก่งของเรา! เด็กๆ ได้ร่วมเรียนรู้องค์ประกอบ ประโยชน์ และคุณค่าทางธรรมชาติของกล้วยน้ำว้าวิเศษครบถ้วนทั้ง 6 ด่าน เรียบร้อยแล้วค่ะ! สมบูรณ์แบบในฐานะผู้พิทักษ์ต้นกล้วยจ้า");
+            } else if (screenId.startsWith('stage-')) {
+                const stageIdx = parseInt(screenId.split('-')[1]);
+                const stageSpeechMap = {
+                    1: "ด่านที่ 1 เครือกล้วยแสนพรรณราย. ผลกล้วยจะอยู่รวมกันเป็นเครือ แต่ละชั้นเรียกว่าหวี ผลกล้วยให้พลังงานสูงและมีสารทริปโตเฟนช่วยกระตุ้นสารแห่งความสุขค่ะ. กิจกรรม: เติมพลังชีวิตให้ตัวละครด้วยกล้วยแสนหวาน ป้อนกล้วยให้ครบ 100% นะคะ",
+                    2: "ด่านที่ 2 เปลือกกล้วยและกาบใบสุดเจ๋ง. ด้านในเปลือกกล้วยมีสารลูทีนช่วยถูทำความสะอาดรองเท้า ส่วนกาบใบมีเส้นใยเหนียวใช้ทำปุ๋ยบำรุงดินได้เป็นอย่างดีค่ะ. กิจกรรม: แปรรูปเปลือกและกาบใบให้เป็นประโยชน์ คลิกขัดรองเท้าและใส่ปุ๋ยแปลงผักนะคะ",
+                    3: "ด่านที่ 3 ใบกล้วยจอมประดิษฐ์. ใบตองมีความเหนียวนุ่ม มีแว็กซ์ธรรมชาติกันน้ำได้ดี และมีสารหอมระเหยช่วยเติมกลิ่นหอมในขนมไทยค่ะ. กิจกรรม: ประดิษฐ์ขนมไทยห่อใบตอง ข้าวต้มมัด ตามขั้นตอนนะคะ",
+                    4: "ด่านที่ 4 ลำต้นเทียมแสนลอยน้ำ. กาบกล้วยที่ห่อรวมตัวเป็นลำต้นเทียมมีช่องโพรงอากาศจำนวนมาก ช่วยสร้างแรงลอยน้ำได้อย่างวิเศษค่ะ. กิจกรรม: ประกอบแพหยวกกล้วยพาสัตว์เลี้ยงล่องแก่งนะคะ",
+                    5: "ด่านที่ 5 หน่อกล้วยแสนรัก. หน่อกล้วยงอกจากตาของโคนเหง้าใต้ดิน สามารถเติบโตอย่างรวดเร็วเป็นต้นใหญ่ที่สมบูรณ์ทดแทนต้นแม่ค่ะ. กิจกรรม: วัฏจักรชีวภาพ รดน้ำพรวนดินหน่อกล้วยให้โตนะคะ",
+                    6: "ด่านที่ 6 หัวปลีกล้วยแสนโอชา. หัวปลีคือส่วนที่เป็นช่อดอก มีแคลเซียม ธาตุเหล็ก และไฟเบอร์สูงมาก ช่วยลดน้ำตาลในเลือดและบำรุงร่างกายค่ะ. กิจกรรม: หั่นหัวปลีเตรียมต้มยำแกงส้มแสนอร่อยนะคะ"
+                };
+                if (stageSpeechMap[stageIdx]) {
+                    speakThai(stageSpeechMap[stageIdx]);
+                }
+            }
+        }
 
         // Banana Knowledge Database (7 Parts)
         const bananaKnowledge = [
@@ -910,6 +1068,8 @@
         // Screen Navigation
         function changeScreen(screenId) {
             playSound('click');
+            stopSpeaking(); // stop any current voice narration
+            
             // Stop adventure game if leaving map
             if (state.activeScreen === 'screen-map' && screenId !== 'screen-map') {
                 stopAdventureGame();
@@ -924,6 +1084,8 @@
             // Start adventure game if entering map
             if (screenId === 'screen-map') {
                 initAdventureGame();
+            } else {
+                triggerScreenSpeech(screenId);
             }
         }
 
@@ -1175,6 +1337,25 @@
             }
         }
 
+        // Maps stage index to knowledge index and vice versa
+        const stageToPartMap = {
+            1: 4, // Stage 1 (เครือกล้วย) -> Part 4 (เครือกล้วย)
+            2: 6, // Stage 2 (เปลือกกล้วย) -> Part 6 (กาบกล้วย)
+            3: 1, // Stage 3 (ใบกล้วย) -> Part 1 (ใบกล้วย)
+            4: 2, // Stage 4 (ลำต้นเทียม) -> Part 2 (ลำต้นเทียม)
+            5: 3, // Stage 5 (หน่อกล้วย) -> Part 3 (หน่อกล้วย)
+            6: 5  // Stage 6 (หัวปลี) -> Part 5 (ปลีกล้วย)
+        };
+        const partToStageMap = {
+            1: 3, // Part 1 -> Stage 3
+            2: 4, // Part 2 -> Stage 4
+            3: 5, // Part 3 -> Stage 5
+            4: 1, // Part 4 -> Stage 1
+            5: 6, // Part 5 -> Stage 6
+            6: 2, // Part 6 -> Stage 2
+            7: 0  // Part 7 -> No Stage (Roots)
+        };
+
         // Show Map part info
         function showInfo(partIdx) {
             playSound('click');
@@ -1186,20 +1367,35 @@
             document.getElementById('info-funfact').classList.remove('hidden');
             document.getElementById('info-funfact-text').textContent = knowledge.funfact;
             
-            const playBtn = document.getElementById('btn-enter-minigame');
+            // Auto-speak the knowledge details
+            speakKnowledge();
             
-            // Map indexes 1-6 are games. Index 7 (roots) is informational only.
-            if (partIdx <= 6) {
-                state.currentStage = partIdx;
-                playBtn.disabled = false;
-                playBtn.classList.remove('bg-gray-300', 'text-gray-500', 'cursor-not-allowed', 'border-gray-400');
-                playBtn.classList.add('bg-yellow-500', 'hover:bg-yellow-600', 'text-yellow-950', 'border-yellow-700', 'bounce-hover');
-                playBtn.innerHTML = `🎮 เข้าสู่มินิเกมด่านที่ ${partIdx} โลด!`;
+            const playBtn = document.getElementById('btn-enter-minigame');
+            const stageIdx = partToStageMap[partIdx];
+            
+            if (stageIdx > 0) {
+                state.currentStage = stageIdx;
+                
+                // If stage is already completed, update the text to indicate they can play again
+                const isCompleted = state.badges[stageIdx - 1];
+                if (isCompleted) {
+                    playBtn.disabled = false;
+                    playBtn.classList.remove('bg-gray-300', 'text-gray-500', 'cursor-not-allowed', 'border-gray-400');
+                    playBtn.classList.remove('bg-yellow-500', 'hover:bg-yellow-600', 'text-yellow-950', 'border-yellow-700');
+                    playBtn.classList.add('bg-emerald-500', 'hover:bg-emerald-600', 'text-white', 'border-emerald-700', 'bounce-hover');
+                    playBtn.innerHTML = `🎮 ทบทวนมินิเกมด่านที่ ${stageIdx} จ้า!`;
+                } else {
+                    playBtn.disabled = false;
+                    playBtn.classList.remove('bg-gray-300', 'text-gray-500', 'cursor-not-allowed', 'border-gray-400');
+                    playBtn.classList.remove('bg-emerald-500', 'hover:bg-emerald-600', 'text-white', 'border-emerald-700');
+                    playBtn.classList.add('bg-yellow-500', 'hover:bg-yellow-600', 'text-yellow-950', 'border-yellow-700', 'bounce-hover');
+                    playBtn.innerHTML = `🎮 เข้าสู่มินิเกมด่านที่ ${stageIdx} โลด!`;
+                }
             } else {
                 state.currentStage = 0;
                 playBtn.disabled = true;
                 playBtn.classList.add('bg-gray-300', 'text-gray-500', 'cursor-not-allowed', 'border-gray-400');
-                playBtn.classList.remove('bg-yellow-500', 'hover:bg-yellow-600', 'text-yellow-950', 'border-yellow-700', 'bounce-hover');
+                playBtn.classList.remove('bg-yellow-500', 'hover:bg-yellow-600', 'text-yellow-950', 'border-yellow-700', 'bounce-hover', 'bg-emerald-500', 'hover:bg-emerald-600', 'text-white', 'border-emerald-700');
                 playBtn.innerHTML = `🪵 รากกล้วยใช้เรียนรู้อย่างเดียวจ้า`;
             }
             
@@ -1751,6 +1947,24 @@
                 adventureState.bananas.forEach(b => b.collected = false);
             }
             
+            // Reset knowledge panel
+            document.getElementById('info-title').textContent = "💡 เรียนรู้ส่วนประกอบต้นกล้วย";
+            document.getElementById('info-description').textContent = "ลองใช้ตัวละครเดินชนหรือโหม่งกล่องปริศนาเครื่องหมายคำถาม (?) บนเกาะ หรือคลิกปุ่มเลือกชิ้นส่วนต่าง ๆ ด้านบน เพื่อศึกษาข้อมูลความรู้พฤกษศาสตร์ของกล้วยน้ำว้าได้เลยจ้า!";
+            document.getElementById('info-funfact').classList.add('hidden');
+            document.getElementById('info-funfact-text').textContent = "";
+            
+            const playBtn = document.getElementById('btn-enter-minigame');
+            if (playBtn) {
+                playBtn.disabled = true;
+                playBtn.className = "w-full bg-gray-300 text-gray-500 font-bold py-3 px-5 rounded-2xl text-xs border border-gray-400 cursor-not-allowed transition-all";
+                playBtn.innerHTML = `🎮 เข้าสู่มินิเกม`;
+                playBtn.classList.remove('hidden');
+            }
+            const victoryBtn = document.getElementById('btn-to-victory');
+            if (victoryBtn) {
+                victoryBtn.classList.add('hidden');
+            }
+            
             changeScreen('screen-map');
         }
 
@@ -2048,6 +2262,12 @@
                                 block.bounceTimer = 10;
                             }
                             
+                            // Show the corresponding knowledge card and speak
+                            const partIdx = stageToPartMap[block.stageIdx];
+                            if (partIdx) {
+                                showInfo(partIdx);
+                            }
+                            
                             // Trigger mini-game if not already completed
                             if (!state.badges[block.stageIdx - 1]) {
                                 playSound('success');
@@ -2058,10 +2278,12 @@
                                 p.vx = 0;
                                 p.vy = 0;
 
-                                // Enter mini-game stage
+                                // Enter mini-game stage after a small delay to let them see/hear the info card
                                 state.currentStage = block.stageIdx;
                                 setupStage(block.stageIdx);
-                                changeScreen(`stage-${block.stageIdx}`);
+                                setTimeout(() => {
+                                    changeScreen(`stage-${block.stageIdx}`);
+                                }, 1200);
                             }
                         }
                     }
