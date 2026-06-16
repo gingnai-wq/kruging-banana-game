@@ -825,7 +825,19 @@
             }
         };
 
-        // Thai Text-to-Speech helpers using Web Speech API
+        // Thai Text-to-Speech helpers using Web Speech API with asynchronous voice loading fix
+        let thaiVoice = null;
+        function loadVoices() {
+            if ('speechSynthesis' in window) {
+                const voices = window.speechSynthesis.getVoices();
+                thaiVoice = voices.find(voice => voice.lang.toLowerCase().includes('th'));
+            }
+        }
+        if ('speechSynthesis' in window) {
+            loadVoices();
+            window.speechSynthesis.onvoiceschanged = loadVoices;
+        }
+
         function speakThai(text) {
             if ('speechSynthesis' in window) {
                 window.speechSynthesis.cancel();
@@ -835,9 +847,12 @@
                 utterance.rate = 1.05; // natural rate
                 utterance.pitch = 1.05; // natural pitch
                 
-                const voices = window.speechSynthesis.getVoices();
-                const thaiVoice = voices.find(voice => voice.lang.includes('th') || voice.lang.includes('TH'));
-                if (thaiVoice) utterance.voice = thaiVoice;
+                if (!thaiVoice) {
+                    loadVoices();
+                }
+                if (thaiVoice) {
+                    utterance.voice = thaiVoice;
+                }
                 
                 window.speechSynthesis.speak(utterance);
             }
