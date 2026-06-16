@@ -1670,8 +1670,11 @@
             const hudBananas = document.getElementById('hud-bananas');
             const hudBadges = document.getElementById('hud-badges');
 
-            // Keyboard and Touch keys
-            const keys = { ArrowLeft: false, ArrowRight: false, ArrowUp: false };
+            // Keyboard and Touch keys (reuse existing reference to avoid closure issue)
+            const keys = (adventureState && adventureState.keys) ? adventureState.keys : { ArrowLeft: false, ArrowRight: false, ArrowUp: false };
+            keys.ArrowLeft = false;
+            keys.ArrowRight = false;
+            keys.ArrowUp = false;
             
             // Set up event listeners once
             if (!window.adventureKeysBound) {
