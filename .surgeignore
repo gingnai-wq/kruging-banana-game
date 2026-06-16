@@ -9,3 +9,7 @@ deploy_surge.js
 *.jpg
 .git
 .gitignore
+*.zip
+*.docx
+ChatGPT*
+school_report_cover*
