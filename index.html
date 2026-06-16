@@ -188,8 +188,39 @@
                 gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
                 osc.start();
                 osc.stop(audioCtx.currentTime + 0.4);
+            } else if (type === 'fall') {
+                // Falling sound: descending pitch
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(350, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(80, audioCtx.currentTime + 0.5);
+                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.5);
+            } else if (type === 'fail') {
+                // Buzz error sound: double low pitch buzz
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(140, audioCtx.currentTime);
+                osc.frequency.setValueAtTime(110, audioCtx.currentTime + 0.12);
+                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.28);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.28);
+            } else if (type === 'victory') {
+                // Grand victory melody: C5 -> E5 -> G5 -> C6 -> E6 -> G6 -> C7 arpeggio
+                const now = audioCtx.currentTime;
+                osc.frequency.setValueAtTime(523.25, now);
+                osc.frequency.setValueAtTime(659.25, now + 0.1);
+                osc.frequency.setValueAtTime(783.99, now + 0.2);
+                osc.frequency.setValueAtTime(1046.50, now + 0.3);
+                osc.frequency.setValueAtTime(1318.51, now + 0.42);
+                osc.frequency.setValueAtTime(1567.98, now + 0.55);
+                osc.frequency.setValueAtTime(2093.00, now + 0.7);
+                gain.gain.setValueAtTime(0.18, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 1.1);
+                osc.start();
+                osc.stop(now + 1.1);
             }
-        }
     </script>
 
     <!-- Main Game Container -->
@@ -895,6 +926,18 @@
             const url = 'https://translate.google.com/translate_tts?ie=UTF-8&tl=th&client=tw-ob&q=' + encodeURIComponent(chunk);
             ttsAudio = new Audio(url);
             
+            // Adjust playback rate and disable preservesPitch to pitch shift the voice
+            if (state.selectedAvatar === 'mali') {
+                // Girl (Mali): slightly faster and cute high pitch
+                ttsAudio.playbackRate = 1.08;
+            } else {
+                // Boy (Porti): slightly slower and deeper boyish pitch
+                ttsAudio.playbackRate = 0.88;
+            }
+            ttsAudio.preservesPitch = false;
+            ttsAudio.mozPreservesPitch = false;
+            ttsAudio.webkitPreservesPitch = false;
+            
             let fallbackTimeout = setTimeout(() => {
                 console.warn("Google TTS timed out, falling back to native SpeechSynthesis.");
                 useGoogleTTS = false;
@@ -932,8 +975,16 @@
                 }
                 const utterance = new SpeechSynthesisUtterance(text);
                 utterance.lang = 'th-TH';
-                utterance.rate = 1.05;
-                utterance.pitch = 1.05;
+                
+                // Adjust pitch and rate on native SpeechSynthesis
+                if (state.selectedAvatar === 'mali') {
+                    utterance.pitch = 1.25; // High pitch for female
+                    utterance.rate = 1.08;
+                } else {
+                    utterance.pitch = 0.82; // Low pitch for male
+                    utterance.rate = 0.95;
+                }
+                
                 if (thaiVoice) {
                     utterance.voice = thaiVoice;
                 }
@@ -1220,6 +1271,7 @@
             const nameInput = document.getElementById('login-name').value.trim();
             
             if (!idInput || idInput.length !== 4) {
+                playSound('fail');
                 alert('กรุณากรอกรหัสนักเรียน 4 หลักให้ถูกต้องจ้า!');
                 return;
             }
@@ -1268,6 +1320,7 @@
                 if (window.studentDb) {
                     student = window.studentDb.find(s => s.id === idInput);
                 } else {
+                    playSound('fail');
                     alert('ไม่พบฐานข้อมูลนักเรียนในระบบ! กรุณาตรวจสอบว่ามีไฟล์ student_db.js ครบถ้วนนะจ๊ะ');
                     checkBtn.disabled = false;
                     checkBtn.innerHTML = originalBtnHtml;
@@ -1280,6 +1333,7 @@
             checkBtn.innerHTML = originalBtnHtml;
             
             if (!student) {
+                playSound('fail');
                 alert('ไม่พบรหัสนักเรียนนี้ในฐานข้อมูลเลยจ้า! กรุณาลองกรอกใหม่อีกครั้ง หรือสลับกรอกข้อมูลเองด้านล่างนะคะ');
                 return;
             }
@@ -1939,6 +1993,7 @@
 
         // Victory Certificate & QR Code Screen
         function showVictory() {
+            playSound('victory');
             changeScreen('screen-victory');
             
             // Trigger Confetti
@@ -2012,6 +2067,7 @@
         // Direct Score Submission via fetch API (for PC/Laptop browsers)
         function submitScoreOnline() {
             if (!state.config.gasUrl) {
+                playSound('fail');
                 alert('ระบบออนไลน์ยังไม่ได้เชื่อมต่อจ้า! คุณครูต้องเปิดตั้งค่า (ปุ่มฟันเฟืองด้านขวาบน) และนำลิงก์ Google Apps Script มาใส่ก่อนนะจ๊ะ');
                 return;
             }
@@ -2029,6 +2085,7 @@
                 alert(`🎉 ส่งคะแนนของ ${state.currentUser.name} สำเร็จเรียบร้อยแล้วจ้า! คะแนนจะถูกบันทึกลงในสเปรดชีตของคุณครูโดยทันที`);
             })
             .catch(err => {
+                playSound('fail');
                 alert(`❌ เกิดข้อผิดพลาดในการบันทึกคะแนน: ${err.message}`);
             });
         }
@@ -2308,7 +2365,7 @@
 
             // Gap death respawn
             if (p.y > 430) {
-                playSound('click');
+                playSound('fall');
                 // Respawn at last safe checkpoint
                 let respawnX = 80;
                 if (p.x > 2600) respawnX = 2700;
@@ -2426,10 +2483,11 @@
             if (p.x + p.width > s.flagpole.x && p.x < s.flagpole.x + s.flagpole.w) {
                 const completedCount = state.badges.filter(Boolean).length;
                 if (completedCount === 6) {
-                    playSound('success');
+                    playSound('victory');
                     s.running = false;
                     showVictory();
                 } else {
+                    playSound('fail');
                     // Push player back
                     p.x = s.flagpole.x - p.width - 15;
                     p.vx = -2;
