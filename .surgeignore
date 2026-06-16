@@ -1,0 +1,11 @@
+node_modules
+package.json
+package-lock.json
+find_kru_aom.js
+replace_names.js
+test_fetch.js
+process_all.js
+deploy_surge.js
+*.jpg
+.git
+.gitignore

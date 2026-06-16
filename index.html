@@ -1,0 +1,2331 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เกมแก๊งกล้วยหอมจอมพลัง 🍌</title>
+    <!-- Tailwind CSS for modern interactive designs -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Mali (Thai Kids Style) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti for Victory Celebration -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        body {
+            font-family: 'Mali', cursive;
+            background: radial-gradient(circle, #fef9c3 0%, #fef08a 100%);
+            user-select: none;
+        }
+        .bounce-hover {
+            transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .bounce-hover:hover {
+            transform: scale(1.05) translateY(-5px);
+        }
+        .floating {
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-12px); }
+        }
+        .bubble-anim {
+            animation: bubbleUp 1.5s infinite ease-in;
+        }
+        @keyframes bubbleUp {
+            0% { transform: translateY(10px); opacity: 0; }
+            50% { opacity: 0.8; }
+            100% { transform: translateY(-40px); opacity: 0; }
+        }
+        /* Custom scrollbar for database info */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #fef9c3;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #fde047;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #eab308;
+        }
+        /* Pixar Premium Theme styles */
+        .pixar-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 4px solid #fde047;
+            box-shadow: 0 20px 25px -5px rgba(234, 179, 8, 0.15), 0 10px 10px -5px rgba(234, 179, 8, 0.1);
+        }
+        .pixar-3d-btn {
+            transition: all 0.1s ease-out;
+            border-bottom: 6px solid;
+        }
+        .pixar-3d-btn:active {
+            transform: translateY(4px);
+            border-bottom-width: 2px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4 overflow-x-hidden relative">
+
+    <script>
+        // Cute Web Audio synthesizer helper for retro and children-friendly gameplay sounds
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'click') {
+                osc.frequency.setValueAtTime(450, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(900, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.1);
+            } else if (type === 'success') {
+                osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+                osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); // E5
+                osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.2); // G5
+                osc.frequency.setValueAtTime(1046.50, audioCtx.currentTime + 0.3); // C6
+                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.55);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.55);
+            } else if (type === 'clean') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(320, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(640, audioCtx.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.15);
+            } else if (type === 'bubble') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800 + Math.random() * 200, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.08);
+                gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.08);
+            } else if (type === 'grow') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1000, audioCtx.currentTime + 0.4);
+                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.4);
+            }
+        }
+    </script>
+
+    <!-- Main Game Container -->
+    <div class="w-full max-w-5xl bg-white/95 backdrop-blur-sm rounded-3xl border-8 border-yellow-400 shadow-2xl p-4 md:p-8 relative min-h-[650px] flex flex-col justify-between z-10">
+        
+        <!-- Header / Progress & Badge Section -->
+        <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-6 border-b-4 border-dashed border-yellow-200 pb-4">
+            <div class="flex items-center gap-3">
+                <span class="text-4xl animate-bounce">🍌</span>
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-bold text-yellow-700">เกาะกล้วยหอมจอมพลัง!</h1>
+                    <p class="text-xs text-gray-500">เรียนรู้ส่วนประกอบต้นกล้วยสุดวิเศษกับครูกิ่ง</p>
+                </div>
+            </div>
+            <!-- Stamps/Badges Progress - 6 badges representing all stages -->
+            <div class="flex flex-col md:flex-row items-end md:items-center gap-3">
+                <div class="flex items-center gap-2 bg-yellow-100 px-4 py-2 rounded-full border-2 border-yellow-300">
+                    <span class="text-xs font-bold text-yellow-800">ตราประทับ:</span>
+                    <div class="flex gap-2" id="badge-container">
+                        <span id="badge-1" class="grayscale opacity-30 text-xl transition-all duration-300" title="เครือกล้วย (ด่านที่ 1)">🍌</span>
+                        <span id="badge-2" class="grayscale opacity-30 text-xl transition-all duration-300" title="เปลือกกล้วยและกาบใบ (ด่านที่ 2)">✨</span>
+                        <span id="badge-3" class="grayscale opacity-30 text-xl transition-all duration-300" title="ใบกล้วย (ด่านที่ 3)">🍃</span>
+                        <span id="badge-4" class="grayscale opacity-30 text-xl transition-all duration-300" title="ลำต้นเทียม (ด่านที่ 4)">🛶</span>
+                        <span id="badge-5" class="grayscale opacity-30 text-xl transition-all duration-300" title="หน่อกล้วย (ด่านที่ 5)">🌱</span>
+                        <span id="badge-6" class="grayscale opacity-30 text-xl transition-all duration-300" title="หัวปลี (ด่านที่ 6)">🌸</span>
+                    </div>
+                </div>
+                <!-- Settings Button for Teacher -->
+                <button onclick="toggleSettingsModal(true)" class="bg-gray-100 hover:bg-yellow-200 border-2 border-gray-300 text-gray-700 p-2 rounded-full transition-all" title="ตั้งค่าระบบเชื่อมโยงคะแนน">
+                    ⚙️
+                </button>
+            </div>
+        </div>
+
+        <!-- SCREEN 0: Student Login & Verification -->
+        <div id="screen-login" class="flex flex-col lg:flex-row items-center justify-center gap-8 py-4 w-full">
+            
+            <!-- Left Side: Pixar/Disney-inspired Illustration Cover -->
+            <div class="w-full lg:w-5/12 flex flex-col items-center gap-2">
+                <div class="relative overflow-hidden rounded-3xl border-8 border-yellow-300 shadow-2xl hover:scale-[1.02] transition-transform duration-300 max-w-sm">
+                    <img src="school_report_cover_1781268317664.png" alt="เกาะกล้วยหอมจอมพลัง Cover" class="w-full h-auto object-cover max-h-[480px]">
+                    <div class="absolute inset-0 bg-gradient-to-t from-yellow-950/20 to-transparent pointer-events-none"></div>
+                </div>
+                <p class="text-[10px] text-gray-500 italic">ภาพปก 3D Premium Chibi (Pixar-Inspired)</p>
+            </div>
+            
+            <!-- Right Side: Login Input Panel & Status -->
+            <div class="w-full lg:w-7/12 flex flex-col items-center gap-4">
+                
+                <!-- Main Login Card -->
+                <div class="w-full bg-amber-50/70 p-6 rounded-3xl border-4 border-yellow-300 shadow-lg flex flex-col items-center gap-4">
+                    <h2 class="text-2xl font-bold text-yellow-800 flex items-center gap-2 justify-center">
+                        🔑 ลงชื่อเข้าเรียนรู้เกาะกล้วยหอม
+                    </h2>
+                    <p class="text-xs text-gray-500">กรุณากรอกข้อมูลเพื่อตรวจสอบรายชื่อนักเรียนระดับชั้น ป.5 (ป.5/1 - ป.5/3)</p>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full mt-2">
+                        <div class="flex flex-col items-start gap-1">
+                            <label class="text-xs font-bold text-yellow-800">1. รหัสนักเรียน 4 หลัก:</label>
+                            <input type="text" id="login-id" placeholder="ตัวอย่าง: 5177" maxlength="4" class="w-full bg-white border-2 border-yellow-300 focus:border-yellow-500 rounded-xl px-4 py-2.5 outline-none text-center font-bold text-yellow-950 text-lg shadow-inner">
+                        </div>
+                        <div class="flex flex-col items-start gap-1">
+                            <label class="text-xs font-bold text-yellow-800">2. ชื่อ (เพื่อช่วยค้นหา):</label>
+                            <input type="text" id="login-name" placeholder="ตัวอย่าง: ดาริน" class="w-full bg-white border-2 border-yellow-300 focus:border-yellow-500 rounded-xl px-4 py-2.5 outline-none text-center font-bold text-yellow-950 text-md shadow-inner">
+                        </div>
+                    </div>
+                    
+                    <button onclick="verifyStudent()" class="bounce-hover w-full bg-yellow-500 hover:bg-yellow-600 border-b-6 border-yellow-700 active:border-b-2 text-yellow-950 font-bold px-8 py-3.5 rounded-full mt-2 transition-all shadow-md text-md pixar-3d-btn">
+                        🔎 ตรวจสอบรายชื่อของฉัน
+                    </button>
+                    <button onclick="toggleManualRegister(true)" class="text-xs text-yellow-700 hover:text-yellow-800 underline font-bold mt-1">
+                        🆕 หรือรหัสไม่อยู่ในระบบ? คลิกที่นี่เพื่อกรอกข้อมูลเอง
+                    </button>
+                </div>
+
+                <!-- Manual Registration Form (Hidden by default) -->
+                <div id="manual-register-form" class="hidden w-full bg-white p-6 rounded-3xl border-4 border-amber-400 shadow-2xl flex flex-col items-center gap-4">
+                    <h3 class="text-xl font-bold text-yellow-800">📝 กรอกข้อมูลผู้เล่นใหม่</h3>
+                    <div class="grid grid-cols-2 gap-4 w-full text-left text-xs">
+                        <div class="flex flex-col gap-1">
+                            <label class="font-bold text-gray-700">รหัสนักเรียน 4 หลัก:</label>
+                            <input type="text" id="reg-id" placeholder="ตัวอย่าง: 9999" maxlength="4" class="w-full bg-gray-50 border-2 border-gray-300 rounded-xl px-4 py-2 outline-none text-center font-bold text-gray-900">
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <label class="font-bold text-gray-700">ชื่อ-นามสกุล:</label>
+                            <input type="text" id="reg-name" placeholder="เด็กชายสมชาย ดีใจ" class="w-full bg-gray-50 border-2 border-gray-300 rounded-xl px-4 py-2 outline-none text-center font-bold text-gray-900">
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <label class="font-bold text-gray-700">ห้องเรียน (เช่น ป.5/4):</label>
+                            <input type="text" id="reg-room" placeholder="ป.5/4" class="w-full bg-gray-50 border-2 border-gray-300 rounded-xl px-4 py-2 outline-none text-center font-bold text-gray-900">
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <label class="font-bold text-gray-700">เลขที่:</label>
+                            <input type="number" id="reg-num" placeholder="ตัวอย่าง: 1" class="w-full bg-gray-50 border-2 border-gray-300 rounded-xl px-4 py-2 outline-none text-center font-bold text-gray-900">
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-start gap-1 w-full text-xs text-left">
+                        <label class="font-bold text-gray-700">เพศตัวละครเริ่มต้น:</label>
+                        <div class="flex gap-4 w-full mt-1">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="reg-gender" value="male" checked class="accent-amber-500"> เด็กชาย (น้องปอพะ 🌀)
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="reg-gender" value="female" class="accent-amber-500"> เด็กหญิง (น้องมะลิ 🌸)
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-2 w-full mt-2">
+                        <button onclick="toggleManualRegister(false)" class="flex-grow bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2.5 rounded-xl text-xs">
+                            ย้อนกลับ
+                        </button>
+                        <button onclick="saveManualStudent()" class="flex-grow bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded-xl text-xs border-b-4 border-amber-700 active:border-b-0">
+                            ยืนยันข้อมูลและเล่นเกม 🚀
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Student Profile verification card -->
+                <div id="verified-info" class="hidden w-full bg-white p-4 rounded-3xl border-4 border-emerald-400 shadow-xl flex items-center gap-4 text-left animate-pulse">
+                    <img id="verified-img" src="" alt="Student Profile" class="w-20 h-24 object-cover rounded-2xl border-4 border-emerald-100 shadow-md">
+                    <div class="flex-grow text-left">
+                        <span class="bg-emerald-500 text-white text-[10px] font-bold px-3 py-1 rounded-full">พบข้อมูลนักเรียนแล้ว! ✅</span>
+                        <h3 class="text-lg font-bold text-gray-800 mt-1" id="verified-name">-</h3>
+                        <div class="grid grid-cols-2 gap-2 mt-1 text-xs text-gray-600">
+                            <p><strong>ห้อง:</strong> <span id="verified-room">-</span></p>
+                            <p><strong>เลขที่:</strong> <span id="verified-num">-</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="btn-to-welcome" disabled onclick="goToWelcomeScreen()" class="w-full bg-gray-300 text-gray-500 font-bold text-md py-3.5 rounded-full transition-all border-b-4 border-gray-400 cursor-not-allowed">
+                    🔒 กรุณายืนยันรหัสก่อนเริ่มเล่น
+                </button>
+            </div>
+        </div>
+
+        <!-- SCREEN 1: Welcome & Avatar Choice -->
+        <div id="screen-welcome" class="hidden flex-col items-center justify-center text-center gap-6 py-4">
+            <div class="flex flex-col md:flex-row items-center justify-center gap-6 w-full max-w-3xl bg-amber-50/50 p-6 rounded-3xl border-2 border-yellow-200">
+                <!-- Teacher Image (Kru Aom) -->
+                <div class="w-40 md:w-48 flex-shrink-0">
+                    <img id="kru-aom-img" src="ChatGPT Image 2 มิ.ย. 2569 23_33_05.png" alt="ครูกิ่ง" class="w-full object-contain drop-shadow-xl rounded-2xl border-4 border-white" onerror="this.onerror=null; this.src='https://placehold.co/200x300/fef08a/854d0e?text=ครูกิ่ง';">
+                    <div class="bg-yellow-400 text-yellow-950 text-sm font-bold py-1 px-3 rounded-full mt-2 shadow">ครูกิ่ง 👩‍🏫</div>
+                </div>
+                <div class="flex-grow text-left max-w-md">
+                    <h2 class="text-2xl md:text-3xl font-bold text-yellow-800 mb-2">ยินดีต้อนรับจ้า!</h2>
+                    <p class="text-gray-700 text-sm leading-relaxed mb-4">
+                        สวัสดีจ้าเด็กๆ ! วันนี้ครูกิ่งจะพาทุกคนไปตะลุยเรียนรู้องค์ประกอบและคุณสมบัติอันสุดยอดของ **ต้นกล้วยวิเศษ** กันค่ะ! ก่อนอื่น เลือกฮีโร่ตัวการ์ตูนที่จะร่วมผจญภัยไปกับเราได้เลยจ้า (สลับเปลี่ยนได้ตลอดนะจ๊ะ)
+                    </p>
+                </div>
+            </div>
+
+            <!-- Avatar Selection Box -->
+            <div class="w-full max-w-2xl">
+                <h3 class="text-lg font-bold text-yellow-700 mb-4">✨ ตัวละครผู้พิทักษ์ต้นกล้วยของคุณ:</h3>
+                <div class="grid grid-cols-2 gap-6">
+                    <!-- Mali Avatar option -->
+                    <button onclick="selectAvatar('mali')" id="select-mali" class="border-4 border-yellow-300 bg-white hover:bg-yellow-50 rounded-2xl p-4 flex flex-col items-center gap-2 transition-all shadow-md hover:shadow-xl relative overflow-hidden group">
+                        <div class="absolute top-2 right-2 bg-green-500 text-white rounded-full px-2 py-0.5 text-xs opacity-0 group-hover:opacity-100 transition-opacity" id="badge-sel-mali">✓ เลือกแล้ว</div>
+                        <img src="ChatGPT Image 2 มิ.ย. 2569 23_33_55.png" alt="น้องมะลิ" class="w-32 h-44 object-contain drop-shadow-md rounded-lg" onerror="this.onerror=null; this.src='https://placehold.co/120x170/fdf2f8/db2777?text=น้องมะลิ';">
+                        <span class="text-lg font-bold text-pink-700">น้องมะลิ 🌸</span>
+                        <span class="text-xs text-gray-500">เด็กหญิงชาวเขาผู้น่ารักสดใส</span>
+                    </button>
+                    <!-- Porti Avatar option -->
+                    <button onclick="selectAvatar('porti')" id="select-porti" class="border-4 border-transparent bg-white hover:bg-yellow-50 rounded-2xl p-4 flex flex-col items-center gap-2 transition-all shadow-md hover:shadow-xl relative overflow-hidden group">
+                        <div class="absolute top-2 right-2 bg-green-500 text-white rounded-full px-2 py-0.5 text-xs opacity-0 group-hover:opacity-100 transition-opacity" id="badge-sel-porti">✓ เลือกแล้ว</div>
+                        <img src="ChatGPT Image 2 มิ.ย. 2569 23_34_50.png" alt="น้องปอพะ" class="w-32 h-44 object-contain drop-shadow-md rounded-lg" onerror="this.onerror=null; this.src='https://placehold.co/120x170/eff6ff/1d4ed8?text=น้องปอพะ';">
+                        <span class="text-lg font-bold text-sky-700">น้องปอพะ 🌀</span>
+                        <span class="text-xs text-gray-500">เด็กชายล้านนาผู้รอบรู้ร่าเริง</span>
+                    </button>
+                </div>
+            </div>
+
+            <button onclick="changeScreen('screen-map')" class="bounce-hover mt-4 bg-green-500 hover:bg-green-600 text-white font-bold text-xl md:text-2xl px-10 py-4 rounded-full border-b-8 border-green-700 active:border-b-0 transition-all shadow-lg">
+                เข้าสู่แผนที่การเรียนรู้! 🚀
+            </button>
+        </div>
+
+        <!-- SCREEN 2: The Interactive Poster Map -->
+        <!-- SCREEN 2: The Interactive Poster Map -->
+        <div id="screen-map" class="hidden flex-col items-center gap-4 w-full">
+            <div class="text-center animate-fade-in">
+                <h3 class="text-2xl font-bold text-yellow-800 flex items-center justify-center gap-2">
+                    🎮 เกาะกล้วยผจญภัยแสนสนุก! (2D Platformer)
+                </h3>
+                <p class="text-xs text-gray-600 mt-1">
+                    บังคับตัวละครเดินลุยด่าน โหม่ง **กล่องปริศนาเครื่องหมายคำถาม (?)** ทั้ง 6 ด่านเพื่อเรียนรู้และสะสมตราประทับให้ครบเพื่อไปต่อถึงธงชัยชนะ!
+                </p>
+            </div>
+
+            <!-- Canvas Container -->
+            <div class="relative w-full max-w-4xl bg-sky-100 rounded-3xl border-8 border-yellow-400 shadow-2xl p-2 flex flex-col items-center">
+                
+                <!-- Score & Collectibles Info HUD overlay -->
+                <div class="absolute top-4 left-6 bg-white/85 backdrop-blur px-4 py-1.5 rounded-full border-2 border-yellow-300 font-bold text-xs text-yellow-950 flex items-center gap-2 shadow-md z-20">
+                    <span>🍌 เก็บกล้วย: <span id="hud-bananas" class="text-yellow-700 text-sm">0</span> ผล</span>
+                    <span class="text-gray-300">|</span>
+                    <span>⭐ ตราประทับ: <span id="hud-badges" class="text-emerald-700 text-sm">0/6</span></span>
+                </div>
+
+                <canvas id="adventure-canvas" width="800" height="400" class="w-full h-auto bg-gradient-to-b from-sky-300 to-sky-100 rounded-2xl border-4 border-white shadow-inner"></canvas>
+                
+                <!-- On-Screen Touch Controls for Mobile Devices -->
+                <div class="flex justify-between items-center w-full max-w-md mt-4 gap-4 px-2 select-none">
+                    <!-- Left and Right D-Pad buttons -->
+                    <div class="flex gap-4">
+                        <button id="ctrl-left" class="w-16 h-16 bg-yellow-400 hover:bg-yellow-500 border-b-6 border-yellow-600 active:border-b-2 text-yellow-950 font-bold rounded-2xl text-2xl flex items-center justify-center shadow-lg transition-all pixar-3d-btn select-none">◀️</button>
+                        <button id="ctrl-right" class="w-16 h-16 bg-yellow-400 hover:bg-yellow-500 border-b-6 border-yellow-600 active:border-b-2 text-yellow-950 font-bold rounded-2xl text-2xl flex items-center justify-center shadow-lg transition-all pixar-3d-btn select-none">▶️</button>
+                    </div>
+                    <!-- Jump button -->
+                    <button id="ctrl-jump" class="w-20 h-20 bg-emerald-400 hover:bg-emerald-500 border-b-6 border-emerald-600 active:border-b-2 text-white font-bold rounded-full text-3xl flex items-center justify-center shadow-lg transition-all pixar-3d-btn select-none">⬆️</button>
+                </div>
+
+                <!-- Keyboard Instructions -->
+                <div class="text-[11px] text-gray-500 mt-2 font-bold hidden sm:block">
+                    ⌨️ วิธีเล่นบนคอมพิวเตอร์: เดินใช้ปุ่มลูกศร ซ้าย-ขวา ◀️ ▶️ | กระโดดใช้ปุ่ม Spacebar หรือปุ่มลูกศรขึ้น ⬆️
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN 3: STAGE 1 - เครือกล้วย (ป้อนพลังงาน) -->
+        <div id="stage-1" class="hidden flex-col items-center gap-6">
+            <div class="text-center">
+                <span class="bg-yellow-100 text-yellow-800 text-sm font-bold px-3 py-1 rounded-full border border-yellow-300">ด่านที่ 1: เครือกล้วยแสนพรรณราย 🍌</span>
+                <h3 class="text-2xl font-bold text-yellow-800 mt-2">เติมพลังชีวิตให้ตัวละครด้วยกล้วยแสนหวาน!</h3>
+                <p class="text-gray-600 text-sm mt-1">ผลกล้วยจะอยู่รวมกันเป็นเครือ แต่ละชั้นเรียกว่า "หวี" ผลกล้วยให้พลังงานสูงและมีสารทริปโตเฟนช่วยกระตุ้นสารแห่งความสุข (Serotonin)</p>
+            </div>
+
+            <div class="flex flex-col md:flex-row items-center justify-around w-full gap-8 py-4">
+                <!-- Selected Hero getting fed -->
+                <div class="flex flex-col items-center gap-3">
+                    <img id="stage1-hero-img" src="ChatGPT Image 2 มิ.ย. 2569 23_33_55.png" alt="Hero Eating" class="w-40 h-52 object-contain drop-shadow-xl transition-all duration-300">
+                    <span id="stage1-hero-speech" class="bg-yellow-100 border-2 border-yellow-300 px-4 py-1 rounded-xl text-yellow-800 text-xs font-bold">หิวแล้ว ขอกล้วยแสนอร่อยเติมพลังหน่อยนะจ๊ะ!</span>
+                </div>
+                
+                <!-- Interactive Bananas Basket -->
+                <div class="bg-amber-50 p-6 rounded-3xl border-4 border-amber-200 flex flex-col items-center gap-3 shadow-md">
+                    <h4 class="font-bold text-amber-800 text-sm text-center">🍌 ตะกร้ากล้วยหอมหวานฉ่ำ (คลิกเพื่อป้อน)</h4>
+                    <div class="flex gap-4">
+                        <button id="feed-banana-1" onclick="feedHero(1)" class="bounce-hover bg-yellow-200 hover:bg-yellow-300 border-4 border-yellow-400 p-4 rounded-2xl text-4xl shadow-md transition-all">🍌</button>
+                        <button id="feed-banana-2" onclick="feedHero(2)" class="bounce-hover bg-yellow-200 hover:bg-yellow-300 border-4 border-yellow-400 p-4 rounded-2xl text-4xl shadow-md transition-all">🍌</button>
+                        <button id="feed-banana-3" onclick="feedHero(3)" class="bounce-hover bg-yellow-200 hover:bg-yellow-300 border-4 border-yellow-400 p-4 rounded-2xl text-4xl shadow-md transition-all">🍌</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Energy Progress Bar -->
+            <div class="w-full bg-gray-200 h-6 rounded-full overflow-hidden border border-gray-300 relative">
+                <div id="hero-energy-bar" class="bg-gradient-to-r from-yellow-400 to-green-500 h-full w-0 transition-all duration-500 flex items-center justify-center text-xs font-bold text-white">0%</div>
+            </div>
+
+            <div class="flex justify-between w-full">
+                <button onclick="changeScreen('screen-map')" class="bg-gray-400 hover:bg-gray-500 text-white font-bold px-6 py-2 rounded-xl text-sm">กลับแผนที่</button>
+                <button id="btn-next-1" disabled onclick="completeStage(1)" class="bg-gray-300 text-gray-500 font-bold px-8 py-3 rounded-xl cursor-not-allowed transition-all text-sm">ผ่านด่านและสะสมแสตมป์! 🎉</button>
+            </div>
+        </div>
+
+        <!-- SCREEN 4: STAGE 2 - เปลือกกล้วยและกาบใบ (รักษ์สิ่งแวดล้อม) -->
+        <div id="stage-2" class="hidden flex-col items-center gap-6">
+            <div class="text-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-bold px-3 py-1 rounded-full border border-orange-300">ด่านที่ 2: เปลือกกล้วยและกาบใบสุดเจ๋ง ✨</span>
+                <h3 class="text-2xl font-bold text-orange-800 mt-2">แปรรูปเปลือกและกาบใบให้เป็นประโยชน์</h3>
+                <p class="text-gray-600 text-sm mt-1">ด้านในเปลือกกล้วยมีสารลูทีนช่วยถูทำความสะอาดรองเท้า ส่วนกาบใบมีเส้นใยเหนียวใช้ทำปุ๋ยบำรุงดินได้เป็นอย่างดี!</p>
+            </div>
+
+            <!-- Double Task Layout -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full py-2">
+                <!-- Task 1: Dirty Shoe Polishing -->
+                <div id="task-shoe" onclick="performClean('shoe')" class="cursor-pointer border-4 border-dashed border-amber-300 bg-amber-50 rounded-2xl p-6 flex flex-col items-center justify-center gap-3 hover:bg-amber-100/50 transition-all relative group">
+                    <span class="text-sm font-bold text-amber-800 bg-amber-200 px-3 py-1 rounded-full">ภารกิจที่ 1: ขัดรองเท้าบูทเปื้อนฝุ่น</span>
+                    <div id="shoe-icon" class="text-7xl filter grayscale opacity-50 transition-all duration-300">🥾</div>
+                    <p id="shoe-text" class="text-xs text-center text-gray-500">แตะที่รูปเพื่อขัดรองเท้าด้วยเปลือกกล้วยจนขึ้นเงาวับ!</p>
+                    <div class="absolute bottom-2 right-2 bg-yellow-400 text-yellow-950 font-bold text-xs py-1 px-2 rounded-full opacity-0 group-hover:opacity-100 transition-all">คลิกขัดเงา ✨</div>
+                </div>
+                <!-- Task 2: Sad Plant Fertilization -->
+                <div id="task-plant" onclick="performClean('plant')" class="cursor-pointer border-4 border-dashed border-emerald-300 bg-emerald-50 rounded-2xl p-6 flex flex-col items-center justify-center gap-3 hover:bg-emerald-100/50 transition-all relative group">
+                    <span class="text-sm font-bold text-emerald-800 bg-emerald-200 px-3 py-1 rounded-full">ภารกิจที่ 2: เติมปุ๋ยกาบกล้วยให้แปลงผัก</span>
+                    <div id="plant-icon" class="text-7xl transition-all duration-300">🥀</div>
+                    <p id="plant-text" class="text-xs text-center text-gray-500">แตะที่รูปเพื่อวางกาบกล้วยบำรุงพืชให้สดชื่นแข็งแรง!</p>
+                    <div class="absolute bottom-2 right-2 bg-green-400 text-green-950 font-bold text-xs py-1 px-2 rounded-full opacity-0 group-hover:opacity-100 transition-all">คลิกใส่ปุ๋ย 🌱</div>
+                </div>
+            </div>
+
+            <div class="flex justify-between w-full">
+                <button onclick="changeScreen('screen-map')" class="bg-gray-400 hover:bg-gray-500 text-white font-bold px-6 py-2 rounded-xl text-sm">กลับแผนที่</button>
+                <button id="btn-next-2" disabled onclick="completeStage(2)" class="bg-gray-300 text-gray-500 font-bold px-8 py-3 rounded-xl cursor-not-allowed transition-all text-sm">ผ่านด่านและสะสมแสตมป์! 🎉</button>
+            </div>
+        </div>
+
+        <!-- SCREEN 5: STAGE 3 - ใบกล้วยจอมประดิษฐ์ (งานครัวหอมกรุ่น) -->
+        <div id="stage-3" class="hidden flex-col items-center gap-6">
+            <div class="text-center">
+                <span class="bg-emerald-100 text-emerald-800 text-sm font-bold px-3 py-1 rounded-full border border-emerald-300">ด่านที่ 3: ใบกล้วยจอมประดิษฐ์ 🍃</span>
+                <h3 class="text-2xl font-bold text-emerald-800 mt-2">ประดิษฐ์ขนมไทยห่อใบตอง (ข้าวต้มมัด)</h3>
+                <p class="text-gray-600 text-sm mt-1">ใบตองมีความเหนียวนุ่ม มีแว็กซ์ธรรมชาติกันน้ำได้ดี และมีสารหอมระเหยช่วยเติมกลิ่นหอมในขนมไทย</p>
+            </div>
+
+            <!-- Split Interface -->
+            <div class="flex flex-col md:flex-row items-center justify-around w-full gap-6 py-2">
+                <!-- Recipe checklist -->
+                <div class="bg-emerald-50 border-4 border-emerald-200 p-5 rounded-2xl w-full md:w-1/2 shadow">
+                    <h4 class="font-bold text-emerald-800 mb-3 flex items-center gap-2">📝 ขั้นตอนปรุงขนมข้าวต้มมัด:</h4>
+                    <ol class="text-sm text-gray-700 space-y-3">
+                        <li id="step-1" class="font-bold text-emerald-600 flex items-center gap-2"><span>1.</span> เตรียมใบตองสะอาดซ้อนกัน 2 ชั้น ✅</li>
+                        <li id="step-2" class="opacity-40 flex items-center gap-2"><span>2.</span> ตักข้าวเหนียวมูนกวนหวานหอมวางลงไป <span id="chk-rice" class="hidden">🍚 OK</span></li>
+                        <li id="step-3" class="opacity-40 flex items-center gap-2"><span>3.</span> วางกล้วยน้ำว้าหวานเจี๊ยบตรงกลาง <span id="chk-banana" class="hidden">🍌 OK</span></li>
+                        <li id="step-4" class="opacity-40 flex items-center gap-2"><span>4.</span> ม้วนห่อใบตองอย่างประณีตแล้วมัดตอก! <span id="chk-wrap" class="hidden">🎀 สำเร็จ!</span></li>
+                    </ol>
+                </div>
+
+                <!-- Wrapping Canvas Graphic area -->
+                <div class="relative w-72 h-72 bg-emerald-100 border-4 border-emerald-300 rounded-3xl flex items-center justify-center overflow-hidden shadow-inner">
+                    <div id="leaf-wrap-visual" class="text-9xl transition-all duration-500 scale-110">🍃</div>
+                </div>
+            </div>
+
+            <!-- Action Controls -->
+            <div class="flex gap-4 justify-center w-full flex-wrap">
+                <button id="btn-add-rice" onclick="progressWrap('rice')" class="bg-white hover:bg-yellow-50 text-gray-700 font-bold px-4 py-2 rounded-xl border-2 border-yellow-400 shadow-sm text-sm transition-all">🍚 ตักข้าวเหนียวมูน</button>
+                <button id="btn-add-banana" disabled onclick="progressWrap('banana')" class="bg-white text-gray-400 font-bold px-4 py-2 rounded-xl border-2 border-gray-200 shadow-sm text-sm cursor-not-allowed transition-all">🍌 ใส่กล้วยน้ำว้า</button>
+                <button id="btn-wrap" disabled onclick="progressWrap('wrap')" class="bg-gray-300 text-gray-400 font-bold px-6 py-2 rounded-xl shadow-md text-sm cursor-not-allowed transition-all">🎀 พับใบตองและผูกตอก</button>
+            </div>
+
+            <div class="flex justify-between w-full">
+                <button onclick="changeScreen('screen-map')" class="bg-gray-400 hover:bg-gray-500 text-white font-bold px-6 py-2 rounded-xl text-sm">กลับแผนที่</button>
+                <button id="btn-next-3" disabled onclick="completeStage(3)" class="bg-gray-300 text-gray-500 font-bold px-8 py-3 rounded-xl cursor-not-allowed transition-all text-sm">ผ่านด่านและสะสมแสตมป์! 🎉</button>
+            </div>
+        </div>
+
+        <!-- SCREEN 6: STAGE 4 - ลำต้นเทียม (แพรอยน้ำล้านนา) -->
+        <div id="stage-4" class="hidden flex-col items-center gap-6">
+            <div class="text-center">
+                <span class="bg-amber-100 text-amber-800 text-sm font-bold px-3 py-1 rounded-full border border-amber-300">ด่านที่ 4: ลำต้นเทียมแสนลอยน้ำ 🛶</span>
+                <h3 class="text-2xl font-bold text-amber-800 mt-2">ประกอบแพหยวกกล้วยพาสัตว์เลี้ยงล่องแก่ง</h3>
+                <p class="text-gray-600 text-sm mt-1">กาบกล้วยที่ห่อรวมตัวเป็นลำต้นเทียมมีช่องโพรงอากาศจำนวนมาก ช่วยสร้างแรงลอยน้ำได้อย่างวิเศษ!</p>
+            </div>
+
+            <!-- Simulated Water River Area -->
+            <div class="relative w-full h-56 bg-sky-200 rounded-3xl border-4 border-sky-300 overflow-hidden flex flex-col items-center justify-end pb-6 shadow-inner">
+                <!-- River Waves -->
+                <div class="absolute inset-x-0 bottom-0 h-16 bg-sky-400/50 animate-pulse"></div>
+                <div class="absolute inset-x-0 bottom-0 h-10 bg-sky-500/70"></div>
+
+                <!-- Floating Raft Container -->
+                <div id="raft-floating-container" class="z-10 flex flex-col items-center translate-y-2 transition-all duration-1000">
+                    <!-- Selected Avatar Character placed on the raft -->
+                    <img id="raft-avatar-passenger" src="ChatGPT Image 2 มิ.ย. 2569 23_33_55.png" alt="Passenger" class="w-24 h-28 object-contain drop-shadow-md hidden mb-[-15px] transition-all">
+                    <div id="raft-base-visual" class="text-6xl filter opacity-40 transition-all">🪵</div>
+                </div>
+            </div>
+
+            <!-- Assembly Controls -->
+            <div class="flex flex-col items-center gap-3 w-full">
+                <p id="stage4-instruction" class="text-sm font-bold text-amber-800">ขั้นตอน: เตรียมท่อนหยวกกล้วยยึดฐานแพ</p>
+                <div class="flex gap-3 flex-wrap justify-center">
+                    <button id="btn-raft-wood" onclick="progressRaft('wood')" class="bg-amber-100 border-2 border-amber-400 hover:bg-amber-200 text-amber-900 font-bold px-4 py-2 rounded-xl text-xs transition-all">🪵 ต่อยึดหยวกกล้วย</button>
+                    <button id="btn-raft-flowers" disabled onclick="progressRaft('flowers')" class="bg-pink-100 border-2 border-pink-400 text-gray-400 font-bold px-4 py-2 rounded-xl text-xs cursor-not-allowed transition-all">🌸 ตกแต่งด้วยดอกไม้ล้านนา</button>
+                    <button id="btn-raft-sail" disabled onclick="progressRaft('sail')" class="bg-sky-100 border-2 border-sky-400 text-gray-400 font-bold px-4 py-2 rounded-xl text-xs cursor-not-allowed transition-all">🌊 ปล่อยลงแม่น้ำปิงลอยลำ!</button>
+                </div>
+            </div>
+
+            <div class="flex justify-between w-full">
+                <button onclick="changeScreen('screen-map')" class="bg-gray-400 hover:bg-gray-500 text-white font-bold px-6 py-2 rounded-xl text-sm">กลับแผนที่</button>
+                <button id="btn-next-4" disabled onclick="completeStage(4)" class="bg-gray-300 text-gray-500 font-bold px-8 py-3 rounded-xl cursor-not-allowed transition-all text-sm">ผ่านด่านและสะสมแสตมป์! 🎉</button>
+            </div>
+        </div>
+
+        <!-- SCREEN 7: STAGE 5 - หน่อกล้วยเจริญเติบโต (เก่งรักษ์ธรรมชาติ) -->
+        <div id="stage-5" class="hidden flex-col items-center gap-6">
+            <div class="text-center">
+                <span class="bg-lime-100 text-lime-800 text-sm font-bold px-3 py-1 rounded-full border border-lime-300">ด่านที่ 5: หน่อกล้วยแสนรัก 🌱</span>
+                <h3 class="text-2xl font-bold text-lime-800 mt-2">วัฏจักรชีวภาพ รดน้ำพรวนดินหน่อกล้วยให้โต</h3>
+                <p class="text-gray-600 text-sm mt-1">หน่อกล้วยงอกจากตาของโคนเหง้าใต้ดิน สามารถเติบโตอย่างรวดเร็วเป็นต้นใหญ่ที่สมบูรณ์ทดแทนต้นแม่!</p>
+            </div>
+
+            <!-- Gardening simulator view -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-6 w-full py-2">
+                <!-- Garden Soil & Plant Stage visualization (Left 7) -->
+                <div class="md:col-span-7 bg-amber-50 rounded-3xl p-6 border-4 border-amber-200 flex flex-col items-center justify-center relative min-h-[250px] shadow-inner overflow-hidden">
+                    <div id="growth-stage-bubble" class="absolute top-4 left-4 bg-lime-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+                        ระยะที่ 1: หน่อกล้วยต้นอ่อน 🌱
+                    </div>
+                    
+                    <!-- Beautiful CSS dynamic growing plant -->
+                    <div id="growing-plant-container" class="flex flex-col items-center justify-end h-44 w-full relative">
+                        <div id="plant-graphic" class="text-8xl transition-all duration-500 filter drop-shadow">🌱</div>
+                        <!-- Soil Base -->
+                        <div class="w-48 h-8 bg-amber-800 rounded-full mt-2 border-2 border-amber-900 shadow"></div>
+                    </div>
+                </div>
+
+                <!-- Plant actions checklist (Right 5) -->
+                <div class="md:col-span-5 bg-white border-2 border-lime-200 rounded-2xl p-4 flex flex-col justify-between gap-4">
+                    <h4 class="font-bold text-lime-800 text-sm">🌻 กิจกรรมขุดดินเพาะเลี้ยง:</h4>
+                    <div class="space-y-2">
+                        <div class="flex items-center gap-2 text-xs">
+                            <span class="w-5 h-5 rounded-full bg-lime-100 text-lime-700 flex items-center justify-center font-bold">1</span>
+                            <span id="grow-lbl-1" class="text-gray-600 font-bold">พรวนหน้าดินเปิดช่องอากาศ</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-xs">
+                            <span class="w-5 h-5 rounded-full bg-lime-100 text-lime-700 flex items-center justify-center font-bold">2</span>
+                            <span id="grow-lbl-2" class="text-gray-400">รดน้ำใสเย็นชื่นใจ</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-xs">
+                            <span class="w-5 h-5 rounded-full bg-lime-100 text-lime-700 flex items-center justify-center font-bold">3</span>
+                            <span id="grow-lbl-3" class="text-gray-400">ใส่ปุ๋ยอินทรีย์บำรุงเหง้า</span>
+                        </div>
+                    </div>
+
+                    <!-- Interactive Buttons for actions -->
+                    <div class="grid grid-cols-3 gap-2">
+                        <button id="btn-grow-soil" onclick="growAction('soil')" class="bg-amber-100 border border-amber-400 hover:bg-amber-200 text-amber-900 text-xs py-2 rounded-xl font-bold transition-all">⛏️ พรวนดิน</button>
+                        <button id="btn-grow-water" disabled onclick="growAction('water')" class="bg-gray-100 border border-gray-200 text-gray-400 text-xs py-2 rounded-xl font-bold cursor-not-allowed transition-all">💧 รดน้ำ</button>
+                        <button id="btn-grow-compost" disabled onclick="growAction('compost')" class="bg-gray-100 border border-gray-200 text-gray-400 text-xs py-2 rounded-xl font-bold cursor-not-allowed transition-all">💩 ใส่ปุ๋ย</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-between w-full">
+                <button onclick="changeScreen('screen-map')" class="bg-gray-400 hover:bg-gray-500 text-white font-bold px-6 py-2 rounded-xl text-sm">กลับแผนที่</button>
+                <button id="btn-next-5" disabled onclick="completeStage(5)" class="bg-gray-300 text-gray-500 font-bold px-8 py-3 rounded-xl cursor-not-allowed transition-all text-sm">ผ่านด่านและสะสมแสตมป์! 🎉</button>
+            </div>
+        </div>
+
+        <!-- SCREEN 8: STAGE 6 - หัวปลีกล้วย (ทำครัวทำอาหารแสนอร่อย) -->
+        <div id="stage-6" class="hidden flex-col items-center gap-6">
+            <div class="text-center">
+                <span class="bg-fuchsia-100 text-fuchsia-800 text-sm font-bold px-3 py-1 rounded-full border border-fuchsia-300">ด่านที่ 6: หัวปลีกล้วยแสนโอชา 🌸</span>
+                <h3 class="text-2xl font-bold text-fuchsia-800 mt-2">หั่นหัวปลีเตรียมต้มยำแกงส้มแสนอร่อย</h3>
+                <p class="text-gray-600 text-sm mt-1">หัวปลีคือส่วนที่เป็นช่อดอก มีแคลเซียม ธาตุเหล็ก และไฟเบอร์สูงมาก ช่วยลดน้ำตาลในเลือดและบำรุงร่างกาย!</p>
+            </div>
+
+            <!-- Cooking Station Interface -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full items-center py-2">
+                <!-- Left: Chopping board & pot visual -->
+                <div class="bg-amber-50 rounded-3xl p-6 border-4 border-amber-200 flex flex-col items-center justify-center min-h-[220px] shadow-inner relative">
+                    <!-- Cooking Steam Effect -->
+                    <div id="pot-steam" class="absolute top-8 text-2xl hidden flex gap-4">
+                        <span class="bubble-anim">♨️</span>
+                        <span class="bubble-anim" style="animation-delay: 0.3s;">♨️</span>
+                        <span class="bubble-anim" style="animation-delay: 0.6s;">♨️</span>
+                    </div>
+                    <!-- Pot or Bowl display -->
+                    <div id="cooking-pot-visual" class="text-8xl transition-all duration-300">🌸</div>
+                    <p id="cooking-narrative" class="text-xs text-gray-500 mt-4 text-center">หัวปลีกล้วยดอกใหญ่ สดจากต้น รอเตรียมเข้าสู่หม้อต้มแกงส้มมะขามรสเด็ด!</p>
+                </div>
+
+                <!-- Right: Chef controls -->
+                <div class="bg-white border-2 border-fuchsia-200 rounded-2xl p-5 flex flex-col gap-4">
+                    <h4 class="font-bold text-fuchsia-800 text-sm">🍳 ขั้นตอนประกอบอาหาร:</h4>
+                    <div class="flex flex-col gap-3">
+                        <button id="btn-cook-cut" onclick="progressCook('cut')" class="bg-fuchsia-500 hover:bg-fuchsia-600 text-white font-bold py-2 px-4 rounded-xl text-sm border-b-4 border-fuchsia-700 active:border-b-0 transition-all flex items-center justify-center gap-2">
+                            🔪 หั่นชิ้นหัวปลีแสนบาง
+                        </button>
+                        <button id="btn-cook-boil" disabled onclick="progressCook('boil')" class="bg-gray-100 text-gray-400 font-bold py-2 px-4 rounded-xl text-sm border cursor-not-allowed transition-all flex items-center justify-center gap-2">
+                            🥣 ปรุงต้มแกงส้มมะขามร้อนระอุ
+                        </button>
+                    </div>
+                    <div class="bg-fuchsia-50 p-3 rounded-xl border border-fuchsia-100">
+                        <p class="text-xs text-fuchsia-950 font-bold">📌 เคล็ดลับความอร่อย:</p>
+                        <p class="text-[11px] text-gray-600 mt-1">หัวปลีต้มมีความเหนียวนุ่มคล้ายเนื้อสัตว์ มีรสชาติฝาดเล็กน้อยและหวานปลาย เหมาะทำต้มยำ ทอดมัน หรือทานคู่กับผัดไทยจ้า!</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-between w-full">
+                <button onclick="changeScreen('screen-map')" class="bg-gray-400 hover:bg-gray-500 text-white font-bold px-6 py-2 rounded-xl text-sm">กลับแผนที่</button>
+                <button id="btn-next-6" disabled onclick="completeStage(6)" class="bg-gray-300 text-gray-500 font-bold px-8 py-3 rounded-xl cursor-not-allowed transition-all text-sm">ผ่านด่านและสะสมแสตมป์! 🎉</button>
+            </div>
+        </div>
+
+        <!-- SCREEN 9: VICTORY / CERTIFICATE SCREEN -->
+        <div id="screen-victory" class="hidden flex-col items-center justify-center text-center gap-6 py-4">
+            <div class="floating text-7xl">🏆🌟🍌🐒🌟🏆</div>
+            <h2 class="text-3xl md:text-4xl font-bold text-yellow-800">ขอปรบมือให้คนเก่งของเรา!</h2>
+            <p class="text-md text-gray-700 max-w-xl leading-relaxed">
+                เด็กๆ ได้ร่วมเรียนรู้องค์ประกอบ ประโยชน์ และคุณค่าทางธรรมชาติของกล้วยน้ำว้าวิเศษครบถ้วนทั้ง 6 ด่าน เรียบร้อยแล้วค่ะ! สมบูรณ์แบบในฐานะผู้พิทักษ์ต้นกล้วย
+            </p>
+
+            <!-- Printable Kid Certificate -->
+            <div id="victory-certificate" class="bg-yellow-50 border-8 border-yellow-400 p-8 rounded-3xl max-w-lg shadow-2xl flex flex-col items-center gap-4 relative overflow-hidden">
+                <!-- Decorative Frame corners -->
+                <div class="absolute top-1 left-1 bg-yellow-400 text-white text-xs p-1 rounded-full">🍌</div>
+                <div class="absolute top-1 right-1 bg-yellow-400 text-white text-xs p-1 rounded-full">🍃</div>
+                
+                <span class="text-xs font-bold text-yellow-600 tracking-wider">เกียรติบัตรเรียนรู้ผ่านด่านพฤกษศาสตร์</span>
+                <span class="text-xl md:text-2xl font-bold text-yellow-900 border-b-4 border-dashed border-yellow-400 pb-1">🏆 ผู้พิทักษ์ต้นกล้วยวิเศษ 🏆</span>
+                
+                <!-- Chosen Avatar Displaying inside Certificate -->
+                <div class="flex flex-col sm:flex-row items-center gap-4 my-2 text-left">
+                    <img id="cert-avatar-img" src="" alt="Avatar" class="w-24 h-32 object-cover rounded-2xl border-4 border-white shadow-md">
+                    <div>
+                        <p class="text-[11px] text-gray-400">ขอมอบเกียรติบัตรนี้แด่:</p>
+                        <p id="cert-hero-name" class="text-lg font-bold text-emerald-700">-</p>
+                        <p class="text-xs text-gray-500 font-bold">ห้องเรียน: <span id="cert-hero-room">-</span> | เลขที่: <span id="cert-hero-num">-</span></p>
+                        <p class="text-[11px] text-gray-500 mt-2">ได้ผ่านการทำกิจกรรมเรียนรู้ ปลอก ขัด พับ ลอยเหาะ เพาะปลูก และหั่นชิ้นส่วนของกล้วยเสร็จสมบูรณ์แล้วจ้า</p>
+                    </div>
+                </div>
+
+                <!-- Teacher Signature Row -->
+                <div class="flex justify-center items-center w-full mt-2 border-t pt-2 border-yellow-300">
+                    <!-- Cute stamp signature simulation -->
+                    <div class="bg-red-500 text-white text-[10px] font-bold py-1 px-4 rounded-full transform rotate-3 shadow border border-red-600">
+                        ตราประทับผ่านด่าน 💮
+                    </div>
+                </div>
+            </div>
+
+            <!-- QR Code Database Sync area -->
+            <div class="w-full max-w-md bg-white border-4 border-emerald-400 p-6 rounded-3xl shadow-md flex flex-col items-center gap-3">
+                <h4 class="font-bold text-emerald-800 text-sm flex items-center gap-1">📲 สแกนเพื่อส่งคะแนนเข้า Google Sheets ของครูกิ่ง</h4>
+                <p class="text-xs text-gray-500">ข้อมูลจะถูกส่งเข้าหัวข้องานใหม่และแยกแท็บห้องใหม่ทันที ระบบเดิมปลอดภัยไม่เสียหายแน่นอนจ้า!</p>
+                
+                <!-- QR Code Target Container -->
+                <div class="bg-gray-100 p-3 rounded-2xl border-2 border-emerald-100 flex items-center justify-center w-48 h-48">
+                    <img id="score-qr-code" src="" alt="QR Code" class="w-full h-full object-contain">
+                </div>
+                
+                <div class="flex gap-2 w-full mt-2">
+                    <button onclick="submitScoreOnline()" class="flex-grow bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2.5 px-4 rounded-xl text-xs shadow transition-all border-b-4 border-emerald-700 active:border-b-0">
+                        ✈️ ส่งข้อมูลออนไลน์ตรงนี้
+                    </button>
+                    <button onclick="window.print()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2.5 px-4 rounded-xl text-xs transition-all">
+                        🖨️ พิมพ์เกียรติบัตร
+                    </button>
+                </div>
+                <p class="text-[9px] text-gray-400" id="current-endpoint-lbl">โหมดการเก็บคะแนน: ออฟไลน์ (ไม่มี URL สคริปต์)</p>
+            </div>
+
+            <button onclick="restartGame()" class="bg-yellow-500 hover:bg-yellow-600 text-yellow-950 font-bold py-3 px-8 rounded-full border-b-4 border-yellow-700 active:border-b-0 transition-all text-sm">
+                🔄 เล่นใหม่อีกครั้งจ้า!
+            </button>
+        </div>
+
+    </div>
+
+    <!-- SETTINGS MODAL: Setup Google Sheets for Teachers -->
+    <div id="settings-modal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+        <div class="w-full max-w-lg bg-white rounded-3xl border-8 border-yellow-400 shadow-2xl p-6 relative">
+            <button onclick="toggleSettingsModal(false)" class="absolute top-4 right-4 bg-gray-200 hover:bg-gray-300 text-gray-700 w-8 h-8 rounded-full flex items-center justify-center font-bold">
+                ✕
+            </button>
+            <h3 class="text-xl font-bold text-yellow-800 mb-2">⚙️ ตั้งค่าสเปรดชีต Google Sheets (สำหรับครูกิ่ง)</h3>
+            <p class="text-xs text-gray-500 mb-4 leading-relaxed">คุณครูสามารถวางลิงก์ Web App URL ที่ได้จาก Google Apps Script ในนี้ เพื่อบันทึกคะแนนจากการสแกนและสร้างชีทห้องแยกใหม่อัตโนมัติ</p>
+            
+            <div class="flex flex-col gap-4 text-sm">
+                <div class="flex flex-col gap-1">
+                    <label class="font-bold text-gray-700 text-xs">1. ลิงก์ Google Apps Script Web App URL:</label>
+                    <input type="text" id="config-gas-url" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-gray-50 border-2 border-gray-300 rounded-xl px-4 py-2 outline-none text-xs focus:border-yellow-400 font-mono text-gray-600">
+                </div>
+                
+                <div class="flex flex-col gap-1">
+                    <label class="font-bold text-gray-700 text-xs">2. ชื่อหัวข้องาน (จะนำไปตั้งชื่อชิ้นงานในสเปรดชีต):</label>
+                    <input type="text" id="config-task-name" placeholder="เกาะกล้วยหอมจอมพลัง" class="w-full bg-gray-50 border-2 border-gray-300 rounded-xl px-4 py-2 outline-none text-xs focus:border-yellow-400">
+                </div>
+                
+                <div class="bg-yellow-50 border border-yellow-200 p-3 rounded-xl text-xs text-yellow-950 mt-1 leading-relaxed">
+                    <strong>💡 วิธีการใช้งานง่ายๆ:</strong>
+                    <ol class="list-decimal list-inside space-y-1 mt-1 font-sans text-[11px] text-gray-600">
+                        <li>นำโค้ดในไฟล์ <code>GoogleAppsScript.js</code> ไปติดตั้งในชีทเป้าหมายของคุณครู</li>
+                        <li>กด Deploy เป็น <strong>Web App</strong> ตั้งค่าผู้เข้าถึงเป็น <strong>Anyone</strong></li>
+                        <li>คัดลอก URL ลิงก์มาวางในช่องด้านบนนี้แล้วกด "บันทึกและเชื่อมต่อ"</li>
+                    </ol>
+                </div>
+            </div>
+            
+            <div class="flex justify-end gap-3 mt-6">
+                <button onclick="toggleSettingsModal(false)" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold px-5 py-2 rounded-xl text-xs">ยกเลิก</button>
+                <button onclick="saveSettings()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-6 py-2 rounded-xl text-xs">💾 บันทึกและเชื่อมต่อ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include Compiled Student Database -->
+    <script src="student_db.js"></script>
+    
+    <script>
+        // Global Game State
+        const state = {
+            activeScreen: 'screen-login',
+            currentUser: null,
+            selectedAvatar: 'mali',
+            badges: [false, false, false, false, false, false],
+            currentStage: 0,
+            stageData: {},
+            config: {
+                gasUrl: 'https://script.google.com/macros/s/AKfycbzpoNZfwAMesOorlXvQUyh3UiJ-tAsz_SF1zLBizem-laPMCmg2aIL3hK4wpbdlpIws/exec',
+                taskName: 'เกาะกล้วยหอมจอมพลัง'
+            }
+        };
+
+        // Banana Knowledge Database (7 Parts)
+        const bananaKnowledge = [
+            {
+                index: 1,
+                name: "ใบกล้วย (ใบตอง) 🍃",
+                description: "ใบตองของกล้วยน้ำว้ามีแผ่นใบขนาดใหญ่ เหนียว ไม่แตกง่าย และมีแว็กซ์ธรรมชาติเคลือบกันน้ำซึม จึงนิยมนำมาใช้เป็นภาชนะและห่อขนมแบบไทยดั้งเดิมอย่างประณีตจ้า!",
+                funfact: "ใบตองอุดมด้วยสารกลุ่มโพลีฟีนอล (Polyphenol) เมื่อผ่านความร้อนจากการนึ่ง จะช่วยยับยั้งแบคทีเรียและส่งกลิ่นหอมเฉพาะตัวที่กระตุ้นความน่ารับประทานสุดๆ!"
+            },
+            {
+                index: 2,
+                name: "ลำต้นเทียม (หยวกกล้วย) 🪵",
+                description: "สิ่งที่เรามองเห็นและเรียกว่าลำต้นกล้วย จริงๆ แล้วคือ 'ลำต้นเทียม' ที่เกิดจากการเจริญของกาบใบโอบอัดกันแน่นเป็นรูปทรงกระบอก ด้านในเป็นรูอากาศจำนวนมาก คล้ายฟองน้ำทำให้มีน้ำหนักเบาและลอยน้ำได้ดี!",
+                funfact: "หยวกกล้วยอุดมด้วยโพแทสเซียม วิตามินบี 6 และเส้นใยอาหารจำนวนมหาศาล นิยมนำมาสับทำเป็นส่วนผสมอาหารบำรุงทางเดินอาหารและล้างพิษตกค้างให้แก่สัตว์เลี้ยง!"
+            },
+            {
+                index: 3,
+                name: "หน่อกล้วย 🌱",
+                description: "หน่อกล้วยคือหน่อที่เติบโตมาจากโคนดินหรือเหง้าใต้ดิน สามารถแยกตัดขุดนำไปเพาะเลี้ยงเป็นต้นกล้วยต้นใหม่ได้รวดเร็ว โดยจะถอดแบบพันธุกรรมและความหวานมาจากต้นแม่ทุกประการ!",
+                funfact: "หน่อกล้วยระยะแรกอุดมไปด้วยฮอร์โมนการเติบโตของพืช (Auxin และ Gibberellin) นิยมสับนำมาทำ 'น้ำหมักชีวภาพหน่อกล้วย' เพื่อเพิ่มจุลินทรีย์ดีบำรุงรากพืชชนิดอื่น!"
+            },
+            {
+                index: 4,
+                name: "เครือกล้วย (ผลกล้วย) 🍌",
+                description: "ผลกล้วยจะออกรวมกันเป็นโครงสร้างใหญ่ที่เรียกว่า 'เครือ' โดยมีลำต้นเทียมทำหน้าที่ค้ำชู ในเครือหนึ่งจะมีกล้วยเป็นชั้นๆ เรียกว่า 'หวี' แหล่งวิตามินและเกลือแร่ชั้นยอด!",
+                funfact: "กล้วยอุดมด้วยกรดอะมิโนทริปโตเฟน (Tryptophan) ที่จะเปลี่ยนเป็นเซโรโทนินในสมอง ซึ่งเป็นสารแห่งความสุข ทำให้เด็กๆ ผ่อนคลาย อารมณ์ดี และคลายความเครียดได้!"
+            },
+            {
+                index: 5,
+                name: "ปลีกล้วย / หัวปลี 🌸",
+                description: "หัวปลีคือช่อดอกของต้นกล้วยที่อยู่ปลายกิ่งก้านเครือ ประกอบด้วยใบประดับสีแดงม่วงหนาหุ้มดอกจริงข้างใน ดอกตัวเมียจะเจริญไปเป็นผลกล้วย ส่วนดอกตัวผู้ปลายช่อจะถูกตัดมาเป็นอาหาร!",
+                funfact: "หัวปลีมีปริมาณธาตุเหล็ก แคลเซียม และฟอสฟอรัสสูงลิบ ช่วยบำรุงเลือดและกระตุ้นการผลิตน้ำนมในสตรีเพิ่งคลอดบุตร และมีสารช่วยควบคุมระดับน้ำตาลในเลือด!"
+            },
+            {
+                index: 6,
+                name: "กาบใบ (กาบกล้วย) 🍂",
+                description: "กาบใบคือส่วนที่โอบแน่นรอบแกนกลางเพื่อรองรับใบกล้วย กาบกล้วยแห้งมีเส้นใยที่เหนียวมาก นิยมลอกนำมาทำเชือกกล้วยคุณภาพดี หรือทำเป็นเส้นใยธรรมชาติสำหรับทอกระเป๋าแฟชั่น!",
+                funfact: "กาบกล้วยสดมีความหนาและชุ่มชื้นสูง ช่วยรักษาความชื้นรอบลำต้นกล้วยให้ทนต่อภัยแล้ง และเมื่อย่อยสลายแล้วจะสลายกลายเป็นปุ๋ยอินทรีย์ชั้นดีให้กับหน้าดิน!"
+            },
+            {
+                index: 7,
+                name: "รากและเหง้ากล้วย 🪵",
+                description: "กล้วยมีรากฝอยจำนวนมากแผ่ขยายใต้ดินเพื่อดูดซับอาหารอย่างรวดเร็ว ส่วนเหง้ากล้วยที่อยู่ใต้ดินคือลำต้นที่แท้จริงซึ่งเก็บสะสมแป้ง สารอาหาร และน้ำเพื่อเลี้ยงดูหน่อกล้วยต้นอ่อน!",
+                funfact: "รากและเหง้ามีคุณสมบัติทางสมุนไพรโบราณเด่นชัด นิยมนำมาฝานต้มดื่มเพื่อดับพิษไข้ ถอนพิษร้อนใน บรรเทาอาการกระหายน้ำ และรักษาอาการท้องเสียได้อย่างมีประสิทธิภาพ!"
+            }
+        ];
+
+        // Load configured settings on start
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedGasUrl = localStorage.getItem('gasUrl');
+            const savedTaskName = localStorage.getItem('taskName');
+            
+            if (savedGasUrl) state.config.gasUrl = savedGasUrl;
+            if (savedTaskName) state.config.taskName = savedTaskName;
+            
+            document.getElementById('config-gas-url').value = state.config.gasUrl;
+            document.getElementById('config-task-name').value = state.config.taskName;
+            
+            updateConfigLabels();
+        });
+
+        function toggleSettingsModal(show) {
+            playSound('click');
+            const modal = document.getElementById('settings-modal');
+            if (show) {
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function saveSettings() {
+            const gasUrl = document.getElementById('config-gas-url').value.trim();
+            const taskName = document.getElementById('config-task-name').value.trim() || 'เกาะกล้วยหอมจอมพลัง';
+            
+            state.config.gasUrl = gasUrl;
+            state.config.taskName = taskName;
+            
+            localStorage.setItem('gasUrl', gasUrl);
+            localStorage.setItem('taskName', taskName);
+            
+            updateConfigLabels();
+            toggleSettingsModal(false);
+            playSound('success');
+            
+            // If in victory screen, recreate QR code immediately
+            if (state.activeScreen === 'screen-victory') {
+                generateQRCode();
+            }
+        }
+
+        function updateConfigLabels() {
+            const lbl = document.getElementById('current-endpoint-lbl');
+            if (state.config.gasUrl) {
+                lbl.innerHTML = `🟢 เชื่อมต่อออนไลน์เรียลไทม์: <code>${state.config.taskName}</code>`;
+                lbl.className = "text-[10px] text-green-600 font-bold mt-1";
+            } else {
+                lbl.innerHTML = `⚠️ โหมดเก็บคะแนนออฟไลน์ (คุณครูยังไม่ได้ใส่ลิงก์สคริปต์)`;
+                lbl.className = "text-[10px] text-gray-400 mt-1";
+            }
+        }
+
+        // Screen Navigation
+        function changeScreen(screenId) {
+            playSound('click');
+            // Stop adventure game if leaving map
+            if (state.activeScreen === 'screen-map' && screenId !== 'screen-map') {
+                stopAdventureGame();
+            }
+            
+            // Hide current screen
+            document.getElementById(state.activeScreen).classList.add('hidden');
+            // Show new screen
+            document.getElementById(screenId).classList.remove('hidden');
+            state.activeScreen = screenId;
+            
+            // Start adventure game if entering map
+            if (screenId === 'screen-map') {
+                initAdventureGame();
+            }
+        }
+
+        function stopAdventureGame() {
+            if (adventureState) {
+                adventureState.running = false;
+            }
+        }
+
+        // Student Database Login & Verification
+        async function verifyStudent() {
+            const idInput = document.getElementById('login-id').value.trim();
+            const nameInput = document.getElementById('login-name').value.trim();
+            
+            if (!idInput || idInput.length !== 4) {
+                alert('กรุณากรอกรหัสนักเรียน 4 หลักให้ถูกต้องจ้า!');
+                return;
+            }
+            
+            const checkBtn = document.querySelector('#screen-login button[onclick="verifyStudent()"]');
+            const verifiedBox = document.getElementById('verified-info');
+            const startBtn = document.getElementById('btn-to-welcome');
+            
+            // Show loading state
+            const originalBtnHtml = checkBtn.innerHTML;
+            checkBtn.disabled = true;
+            checkBtn.innerHTML = `🔄 กำลังตรวจสอบข้อมูล...`;
+            
+            let student = null;
+            let source = 'local';
+            
+            // 1. Try to fetch from Online Google Sheet Database if URL is configured
+            if (state.config.gasUrl) {
+                try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 6000);
+                    
+                    const fetchUrl = `${state.config.gasUrl}?action=getStudent&id=${encodeURIComponent(idInput)}`;
+                    const response = await fetch(fetchUrl, {
+                        method: 'GET',
+                        signal: controller.signal,
+                        redirect: 'follow'
+                    });
+                    
+                    clearTimeout(timeoutId);
+                    
+                    if (response.ok) {
+                        const result = await response.json();
+                        if (result && result.success && result.student) {
+                            student = result.student;
+                            source = 'online';
+                        }
+                    }
+                } catch (err) {
+                    console.warn("Online verification failed/timed out, falling back to local database:", err);
+                }
+            }
+            
+            // 2. Fallback to local studentDb if online database search failed or returned nothing
+            if (!student) {
+                if (window.studentDb) {
+                    student = window.studentDb.find(s => s.id === idInput);
+                } else {
+                    alert('ไม่พบฐานข้อมูลนักเรียนในระบบ! กรุณาตรวจสอบว่ามีไฟล์ student_db.js ครบถ้วนนะจ๊ะ');
+                    checkBtn.disabled = false;
+                    checkBtn.innerHTML = originalBtnHtml;
+                    return;
+                }
+            }
+            
+            // Reset button state
+            checkBtn.disabled = false;
+            checkBtn.innerHTML = originalBtnHtml;
+            
+            if (!student) {
+                alert('ไม่พบรหัสนักเรียนนี้ในฐานข้อมูลเลยจ้า! กรุณาลองกรอกใหม่อีกครั้ง หรือสลับกรอกข้อมูลเองด้านล่างนะคะ');
+                return;
+            }
+            
+            // Soft name match if name is provided (helpful for confirmation)
+            if (nameInput) {
+                const searchName = nameInput.toLowerCase();
+                const studentName = student.name.toLowerCase();
+                if (!studentName.includes(searchName)) {
+                    console.log('Spelling check: name mismatch, but allowing ID pass');
+                }
+            }
+            
+            state.currentUser = student;
+            
+            // Update Student Profile DOM
+            verifiedBox.classList.remove('hidden');
+            document.getElementById('verified-name').textContent = student.name;
+            document.getElementById('verified-room').textContent = student.room;
+            document.getElementById('verified-num').textContent = student.num;
+            
+            // Display source indicator
+            let sourceBadge = document.getElementById('source-badge');
+            if (!sourceBadge) {
+                sourceBadge = document.createElement('span');
+                sourceBadge.id = 'source-badge';
+                document.getElementById('verified-name').parentNode.insertBefore(sourceBadge, document.getElementById('verified-name').nextSibling);
+            }
+            if (source === 'online') {
+                sourceBadge.textContent = '🟢 ดึงข้อมูลจาก Sheets เรียลไทม์';
+                sourceBadge.className = 'ml-2 text-[10px] bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded-full inline-block mt-1';
+            } else {
+                sourceBadge.textContent = '🟡 โหมดฐานข้อมูลสำรอง (ออฟไลน์)';
+                sourceBadge.className = 'ml-2 text-[10px] bg-yellow-100 text-yellow-700 font-bold px-2 py-0.5 rounded-full inline-block mt-1';
+            }
+            
+            const imgEl = document.getElementById('verified-img');
+            if (student.photo) {
+                imgEl.src = student.photo;
+            } else {
+                imgEl.src = student.gender === 'female' 
+                  ? 'ChatGPT Image 2 มิ.ย. 2569 23_33_55.png' 
+                  : 'ChatGPT Image 2 มิ.ย. 2569 23_34_50.png';
+            }
+            
+            // Enable start button
+            startBtn.disabled = false;
+            startBtn.classList.remove('bg-gray-300', 'text-gray-500', 'cursor-not-allowed', 'border-gray-400');
+            startBtn.classList.add('bg-emerald-500', 'hover:bg-emerald-600', 'text-white', 'border-emerald-700', 'bounce-hover');
+            startBtn.innerHTML = `ยืนยันข้อมูลและเริ่มเล่น! 🚀`;
+            
+            // Auto-select corresponding avatar character in state
+            selectAvatar(student.gender === 'female' ? 'mali' : 'porti');
+            playSound('success');
+        }
+
+        function goToWelcomeScreen() {
+            changeScreen('screen-welcome');
+        }
+
+        function toggleManualRegister(show) {
+            playSound('click');
+            const loginBox = document.querySelector('#screen-login > div:first-child');
+            const verifiedBox = document.getElementById('verified-info');
+            const manualBox = document.getElementById('manual-register-form');
+            const startBtn = document.getElementById('btn-to-welcome');
+            
+            if (show) {
+                loginBox.classList.add('hidden');
+                verifiedBox.classList.add('hidden');
+                manualBox.classList.remove('hidden');
+                startBtn.classList.add('hidden');
+            } else {
+                loginBox.classList.remove('hidden');
+                manualBox.classList.add('hidden');
+                startBtn.classList.remove('hidden');
+            }
+        }
+
+        function saveManualStudent() {
+            const id = document.getElementById('reg-id').value.trim();
+            const name = document.getElementById('reg-name').value.trim();
+            const room = document.getElementById('reg-room').value.trim() || 'ป.5/ทั่วไป';
+            const num = document.getElementById('reg-num').value.trim() || '1';
+            const gender = document.querySelector('input[name="reg-gender"]:checked').value;
+            
+            if (!id || id.length !== 4) {
+                alert('กรุณากรอกรหัสนักเรียน 4 หลักให้ถูกต้องจ้า!');
+                return;
+            }
+            if (!name) {
+                alert('กรุณากรอกชื่อ-นามสกุลด้วยนะคะ!');
+                return;
+            }
+            
+            state.currentUser = {
+                id: id,
+                name: name,
+                room: room,
+                num: num,
+                gender: gender,
+                photo: null
+            };
+            
+            // Auto-select avatar character
+            selectAvatar(gender === 'female' ? 'mali' : 'porti');
+            playSound('success');
+            
+            // Go directly to welcome screen
+            goToWelcomeScreen();
+        }
+
+        // Select Hero Character
+        function selectAvatar(avatar) {
+            playSound('click');
+            state.selectedAvatar = avatar;
+            
+            const selectMali = document.getElementById('select-mali');
+            const selectPorti = document.getElementById('select-porti');
+            
+            const badgeMali = document.getElementById('badge-sel-mali');
+            const badgePorti = document.getElementById('badge-sel-porti');
+            
+            if (avatar === 'mali') {
+                if (selectMali) {
+                    selectMali.classList.add('border-yellow-400', 'bg-yellow-50');
+                    selectMali.classList.remove('border-transparent');
+                }
+                if (badgeMali) badgeMali.classList.add('opacity-100');
+                
+                if (selectPorti) {
+                    selectPorti.classList.remove('border-yellow-400', 'bg-yellow-50');
+                    selectPorti.classList.add('border-transparent');
+                }
+                if (badgePorti) badgePorti.classList.remove('opacity-100');
+                
+                // Update speech and avatar image in stage/map previews
+                const heroImg = document.getElementById('current-hero-img');
+                if (heroImg) heroImg.src = 'ChatGPT Image 2 มิ.ย. 2569 23_33_55.png';
+                const heroSpeechName = document.getElementById('current-hero-speech-name');
+                if (heroSpeechName) heroSpeechName.textContent = 'น้องมะลิ 🌸';
+                const heroSpeech = document.getElementById('current-hero-speech');
+                if (heroSpeech) heroSpeech.textContent = '"พวกเรามาลุยเกาะกล้วยหอมกับคุณครูกิ่งกันค่ะ!"';
+            } else {
+                if (selectPorti) {
+                    selectPorti.classList.add('border-yellow-400', 'bg-yellow-50');
+                    selectPorti.classList.remove('border-transparent');
+                }
+                if (badgePorti) badgePorti.classList.add('opacity-100');
+                
+                if (selectMali) {
+                    selectMali.classList.remove('border-yellow-400', 'bg-yellow-50');
+                    selectMali.classList.add('border-transparent');
+                }
+                if (badgeMali) badgeMali.classList.remove('opacity-100');
+                
+                const heroImg = document.getElementById('current-hero-img');
+                if (heroImg) heroImg.src = 'ChatGPT Image 2 มิ.ย. 2569 23_34_50.png';
+                const heroSpeechName = document.getElementById('current-hero-speech-name');
+                if (heroSpeechName) heroSpeechName.textContent = 'น้องปอพะ 🌀';
+                const heroSpeech = document.getElementById('current-hero-speech');
+                if (heroSpeech) heroSpeech.textContent = '"แผนผังต้นกล้วยมีชิ้นส่วนน่ารู้เยอะแยะเลยครับ!"';
+            }
+        }
+
+        // Show Map part info
+        function showInfo(partIdx) {
+            playSound('click');
+            const knowledge = bananaKnowledge.find(k => k.index === partIdx);
+            if (!knowledge) return;
+            
+            document.getElementById('info-title').textContent = knowledge.name;
+            document.getElementById('info-description').textContent = knowledge.description;
+            document.getElementById('info-funfact').classList.remove('hidden');
+            document.getElementById('info-funfact-text').textContent = knowledge.funfact;
+            
+            const playBtn = document.getElementById('btn-enter-minigame');
+            
+            // Map indexes 1-6 are games. Index 7 (roots) is informational only.
+            if (partIdx <= 6) {
+                state.currentStage = partIdx;
+                playBtn.disabled = false;
+                playBtn.classList.remove('bg-gray-300', 'text-gray-500', 'cursor-not-allowed', 'border-gray-400');
+                playBtn.classList.add('bg-yellow-500', 'hover:bg-yellow-600', 'text-yellow-950', 'border-yellow-700', 'bounce-hover');
+                playBtn.innerHTML = `🎮 เข้าสู่มินิเกมด่านที่ ${partIdx} โลด!`;
+            } else {
+                state.currentStage = 0;
+                playBtn.disabled = true;
+                playBtn.classList.add('bg-gray-300', 'text-gray-500', 'cursor-not-allowed', 'border-gray-400');
+                playBtn.classList.remove('bg-yellow-500', 'hover:bg-yellow-600', 'text-yellow-950', 'border-yellow-700', 'bounce-hover');
+                playBtn.innerHTML = `🪵 รากกล้วยใช้เรียนรู้อย่างเดียวจ้า`;
+            }
+            
+            // Update speech balloon based on chosen hero
+            const speechEl = document.getElementById('current-hero-speech');
+            if (speechEl) {
+                if (state.selectedAvatar === 'mali') {
+                    speechEl.textContent = `"เรื่องของ ${knowledge.name.split(' ')[0]} น่าเรียนรู้มากเลยค่ะ!"`;
+                } else {
+                    speechEl.textContent = `"ว้าว! ประโยชน์ของ ${knowledge.name.split(' ')[0]} สุดเจ๋งไปเลยครับ!"`;
+                }
+            }
+        }
+
+        // Enter Subgame screen
+        function enterSubgame() {
+            if (state.currentStage === 0 || state.currentStage > 6) return;
+            setupStage(state.currentStage);
+            changeScreen(`stage-${state.currentStage}`);
+        }
+
+        // Stage setup helper
+        function setupStage(stageIdx) {
+            state.stageData = {};
+            const heroAvatarSrc = state.selectedAvatar === 'mali' 
+                ? 'ChatGPT Image 2 มิ.ย. 2569 23_33_55.png' 
+                : 'ChatGPT Image 2 มิ.ย. 2569 23_34_50.png';
+                
+            if (stageIdx === 1) {
+                // Energy Bar Stage
+                state.stageData.energy = 0;
+                document.getElementById('stage1-hero-img').src = heroAvatarSrc;
+                document.getElementById('stage1-hero-img').className = "w-40 h-52 object-contain drop-shadow-xl transition-all duration-300";
+                document.getElementById('hero-energy-bar').style.width = '0%';
+                document.getElementById('hero-energy-bar').textContent = '0%';
+                document.getElementById('stage1-hero-speech').textContent = "ขอกล้วยแสนอร่อย ป้อนเติมพลังชีวิตให้หนูหน่อยนะจ๊ะ!";
+                
+                // reset banana buttons
+                for (let i = 1; i <= 3; i++) {
+                    const btn = document.getElementById(`feed-banana-${i}`);
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-20', 'cursor-not-allowed');
+                }
+                const passBtn = document.getElementById('btn-next-1');
+                passBtn.disabled = true;
+                passBtn.className = "bg-gray-300 text-gray-500 font-bold px-8 py-3 rounded-xl cursor-not-allowed text-sm";
+            } else if (stageIdx === 2) {
+                // Environmental Polish/Fertilize stage
+                state.stageData.shoeCleaned = false;
+                state.stageData.plantFertilized = false;
+                
+                document.getElementById('shoe-icon').className = "text-7xl filter grayscale opacity-50 transition-all duration-300";
+                document.getElementById('shoe-text').textContent = "แตะที่บูทกี่ครั้งก็ได้เพื่อสครับทำความสะอาดด้วยเปลือกกล้วย!";
+                document.getElementById('plant-icon').textContent = "🥀";
+                document.getElementById('plant-text').textContent = "วางกาบใบกล้วยชื้นๆ ลงหลุมดินเป็นสารอาหารให้พืช!";
+                
+                const passBtn = document.getElementById('btn-next-2');
+                passBtn.disabled = true;
+                passBtn.className = "bg-gray-300 text-gray-500 font-bold px-8 py-3 rounded-xl cursor-not-allowed text-sm";
+            } else if (stageIdx === 3) {
+                // Thai Dessert Wrap Stage
+                state.stageData.riceAdded = false;
+                state.stageData.bananaAdded = false;
+                state.stageData.wrapped = false;
+                
+                document.getElementById('chk-rice').className = "hidden";
+                document.getElementById('chk-banana').className = "hidden";
+                document.getElementById('chk-wrap').className = "hidden";
+                
+                document.getElementById('step-2').className = "opacity-40 flex items-center gap-2";
+                document.getElementById('step-3').className = "opacity-40 flex items-center gap-2";
+                document.getElementById('step-4').className = "opacity-40 flex items-center gap-2";
+                
+                document.getElementById('leaf-wrap-visual').textContent = "🍃";
+                
+                document.getElementById('btn-add-rice').disabled = false;
+                document.getElementById('btn-add-rice').className = "bg-white hover:bg-yellow-50 text-gray-700 font-bold px-4 py-2 rounded-xl border-2 border-yellow-400 shadow-sm text-sm transition-all";
+                
+                document.getElementById('btn-add-banana').disabled = true;
+                document.getElementById('btn-add-banana').className = "bg-white text-gray-400 font-bold px-4 py-2 rounded-xl border-2 border-gray-200 shadow-sm text-sm cursor-not-allowed transition-all";
+                
+                document.getElementById('btn-wrap').disabled = true;
+                document.getElementById('btn-wrap').className = "bg-gray-300 text-gray-400 font-bold px-6 py-2 rounded-xl shadow-md text-sm cursor-not-allowed transition-all";
+                
+                const passBtn = document.getElementById('btn-next-3');
+                passBtn.disabled = true;
+                passBtn.className = "bg-gray-300 text-gray-500 font-bold px-8 py-3 rounded-xl cursor-not-allowed text-sm";
+            } else if (stageIdx === 4) {
+                // Raft Assembly stage
+                state.stageData.step = 0;
+                document.getElementById('raft-base-visual').textContent = "🪵";
+                document.getElementById('raft-base-visual').className = "text-6xl filter opacity-45";
+                document.getElementById('raft-avatar-passenger').classList.add('hidden');
+                document.getElementById('raft-avatar-passenger').src = heroAvatarSrc;
+                document.getElementById('raft-floating-container').style.transform = 'translateY(10px)';
+                
+                document.getElementById('stage4-instruction').textContent = "ขั้นตอน: วางลำต้นเทียม (หยวกกล้วย) ยึดเป็นตัวแพลอยน้ำ";
+                
+                document.getElementById('btn-raft-wood').disabled = false;
+                document.getElementById('btn-raft-wood').className = "bg-amber-100 border-2 border-amber-400 hover:bg-amber-200 text-amber-900 font-bold px-4 py-2 rounded-xl text-xs transition-all";
+                
+                document.getElementById('btn-raft-flowers').disabled = true;
+                document.getElementById('btn-raft-flowers').className = "bg-pink-50 border-2 border-gray-200 text-gray-400 font-bold px-4 py-2 rounded-xl text-xs cursor-not-allowed transition-all";
+                
+                document.getElementById('btn-raft-sail').disabled = true;
+                document.getElementById('btn-raft-sail').className = "bg-sky-50 border-2 border-gray-200 text-gray-400 font-bold px-4 py-2 rounded-xl text-xs cursor-not-allowed transition-all";
+                
+                const passBtn = document.getElementById('btn-next-4');
+                passBtn.disabled = true;
+                passBtn.className = "bg-gray-300 text-gray-500 font-bold px-8 py-3 rounded-xl cursor-not-allowed text-sm";
+            } else if (stageIdx === 5) {
+                // Plant Growing stage
+                state.stageData.step = 0;
+                document.getElementById('plant-graphic').textContent = "🌱";
+                document.getElementById('plant-graphic').className = "text-8xl transition-all duration-500 filter drop-shadow scale-50";
+                document.getElementById('growth-stage-bubble').textContent = "ระยะที่ 1: หน่อกล้วยแรกรุ่น 🌱";
+                
+                document.getElementById('grow-lbl-1').className = "text-gray-600 font-bold";
+                document.getElementById('grow-lbl-2').className = "text-gray-400";
+                document.getElementById('grow-lbl-3').className = "text-gray-400";
+                
+                document.getElementById('btn-grow-soil').disabled = false;
+                document.getElementById('btn-grow-soil').className = "bg-amber-100 border border-amber-400 hover:bg-amber-200 text-amber-900 text-xs py-2 rounded-xl font-bold transition-all";
+                
+                document.getElementById('btn-grow-water').disabled = true;
+                document.getElementById('btn-grow-water').className = "bg-gray-100 border border-gray-200 text-gray-400 text-xs py-2 rounded-xl font-bold cursor-not-allowed transition-all";
+                
+                document.getElementById('btn-grow-compost').disabled = true;
+                document.getElementById('btn-grow-compost').className = "bg-gray-100 border border-gray-200 text-gray-400 text-xs py-2 rounded-xl font-bold cursor-not-allowed transition-all";
+                
+                const passBtn = document.getElementById('btn-next-5');
+                passBtn.disabled = true;
+                passBtn.className = "bg-gray-300 text-gray-500 font-bold px-8 py-3 rounded-xl cursor-not-allowed text-sm";
+            } else if (stageIdx === 6) {
+                // Cooking stage
+                state.stageData.chopped = false;
+                state.stageData.boiled = false;
+                
+                document.getElementById('pot-steam').classList.add('hidden');
+                document.getElementById('cooking-pot-visual').textContent = "🌸";
+                document.getElementById('cooking-pot-visual').className = "text-8xl transition-all duration-300";
+                document.getElementById('cooking-narrative').textContent = "หัวปลีสีสดเพิ่งตัดมาแกะแต่งกลีบแกนกลางเพื่อเตรียมพร้อมประกอบอาหาร!";
+                
+                document.getElementById('btn-cook-cut').disabled = false;
+                document.getElementById('btn-cook-cut').className = "bg-fuchsia-500 hover:bg-fuchsia-600 text-white font-bold py-2 px-4 rounded-xl text-sm border-b-4 border-fuchsia-700 active:border-b-0 transition-all flex items-center justify-center gap-2";
+                
+                document.getElementById('btn-cook-boil').disabled = true;
+                document.getElementById('btn-cook-boil').className = "bg-gray-100 text-gray-400 font-bold py-2 px-4 rounded-xl text-sm border cursor-not-allowed transition-all flex items-center justify-center gap-2";
+                
+                const passBtn = document.getElementById('btn-next-6');
+                passBtn.disabled = true;
+                passBtn.className = "bg-gray-300 text-gray-500 font-bold px-8 py-3 rounded-xl cursor-not-allowed text-sm";
+            }
+        }
+
+        // STAGE 1 LOGIC: Feed Energy
+        function feedHero(bananaIdx) {
+            if (state.stageData.energy >= 100) return;
+            
+            playSound('success');
+            const bananaBtn = document.getElementById(`feed-banana-${bananaIdx}`);
+            bananaBtn.disabled = true;
+            bananaBtn.classList.add('opacity-20', 'cursor-not-allowed');
+            
+            state.stageData.energy += 34; // 3 feeds makes 102% which clamp to 100%
+            if (state.stageData.energy > 100) state.stageData.energy = 100;
+            
+            // Update Energy Bar
+            const bar = document.getElementById('hero-energy-bar');
+            bar.style.width = `${state.stageData.energy}%`;
+            bar.textContent = `${state.stageData.energy}%`;
+            
+            // Cute Speech update
+            const speech = document.getElementById('stage1-hero-speech');
+            const heroImg = document.getElementById('stage1-hero-img');
+            
+            if (state.stageData.energy < 40) {
+                speech.textContent = "อร่อยจัง! ป้อนกล้วยหอมเพิ่มอีกได้ไหมจ๊ะ?";
+                heroImg.classList.add('scale-105');
+                setTimeout(() => heroImg.classList.remove('scale-105'), 300);
+            } else if (state.stageData.energy < 90) {
+                speech.textContent = "เย้! ได้พลังวิตามินกล้วยหอมไปเยอะเลย รู้สึกอารมณ์ดีจัง!";
+                heroImg.classList.add('scale-110');
+                setTimeout(() => heroImg.classList.remove('scale-110'), 300);
+            } else {
+                speech.textContent = "อิ่มแปล้และเต็มพลัง 100% แล้วจ้า! ตัวละครกล้าหาญพร้อมเดินทางต่อแล้ว!";
+                heroImg.className = "w-40 h-52 object-contain drop-shadow-xl transition-all duration-300 animate-bounce";
+                
+                // Unlock pass button
+                const passBtn = document.getElementById('btn-next-1');
+                passBtn.disabled = false;
+                passBtn.className = "bg-green-500 hover:bg-green-600 text-white font-bold px-8 py-3 rounded-xl border-b-4 border-green-700 active:border-b-0 transition-all text-sm bounce-hover";
+            }
+        }
+
+        // STAGE 2 LOGIC: Clean & Fertilize
+        function performClean(type) {
+            playSound('clean');
+            if (type === 'shoe') {
+                state.stageData.shoeCleaned = true;
+                const shoeIcon = document.getElementById('shoe-icon');
+                shoeIcon.className = "text-7xl transition-all duration-300 scale-110";
+                shoeIcon.textContent = "🥾✨";
+                document.getElementById('shoe-text').textContent = "ว้าว! รองเท้าขึ้นเงาสวยงามเพราะลูทีนธรรมชาติจากเปลือกกล้วยจ้า!";
+            } else if (type === 'plant') {
+                state.stageData.plantFertilized = true;
+                const plantIcon = document.getElementById('plant-icon');
+                plantIcon.className = "text-7xl transition-all duration-300 scale-110";
+                plantIcon.textContent = "🌻";
+                document.getElementById('plant-text').textContent = "พืชเติบโตงอกงามและบานสะพรั่งจากสารอาหารชั้นเลิศของกาบกล้วย!";
+            }
+            
+            // Check if both tasks are completed
+            if (state.stageData.shoeCleaned && state.stageData.plantFertilized) {
+                playSound('success');
+                const passBtn = document.getElementById('btn-next-2');
+                passBtn.disabled = false;
+                passBtn.className = "bg-green-500 hover:bg-green-600 text-white font-bold px-8 py-3 rounded-xl border-b-4 border-green-700 active:border-b-0 transition-all text-sm bounce-hover";
+            }
+        }
+
+        // STAGE 3 LOGIC: Wrap Thai Dessert
+        function progressWrap(item) {
+            if (item === 'rice' && !state.stageData.riceAdded) {
+                playSound('click');
+                state.stageData.riceAdded = true;
+                document.getElementById('chk-rice').classList.remove('hidden');
+                document.getElementById('step-2').classList.add('font-bold', 'text-emerald-600');
+                document.getElementById('step-3').classList.add('font-bold');
+                document.getElementById('step-3').classList.remove('opacity-40');
+                
+                document.getElementById('leaf-wrap-visual').textContent = "🍚";
+                
+                document.getElementById('btn-add-rice').disabled = true;
+                document.getElementById('btn-add-rice').className = "bg-white text-gray-400 font-bold px-4 py-2 rounded-xl border-2 border-gray-200 shadow-sm text-sm cursor-not-allowed transition-all";
+                
+                document.getElementById('btn-add-banana').disabled = false;
+                document.getElementById('btn-add-banana').className = "bg-white hover:bg-yellow-50 text-gray-700 font-bold px-4 py-2 rounded-xl border-2 border-yellow-400 shadow-sm text-sm transition-all";
+            } else if (item === 'banana' && state.stageData.riceAdded && !state.stageData.bananaAdded) {
+                playSound('click');
+                state.stageData.bananaAdded = true;
+                document.getElementById('chk-banana').classList.remove('hidden');
+                document.getElementById('step-3').classList.add('font-bold', 'text-emerald-600');
+                document.getElementById('step-4').classList.add('font-bold');
+                document.getElementById('step-4').classList.remove('opacity-40');
+                
+                document.getElementById('leaf-wrap-visual').textContent = "🍌";
+                
+                document.getElementById('btn-add-banana').disabled = true;
+                document.getElementById('btn-add-banana').className = "bg-white text-gray-400 font-bold px-4 py-2 rounded-xl border-2 border-gray-200 shadow-sm text-sm cursor-not-allowed transition-all";
+                
+                document.getElementById('btn-wrap').disabled = false;
+                document.getElementById('btn-wrap').className = "bg-green-500 hover:bg-green-600 text-white font-bold px-6 py-2 rounded-xl shadow-md text-sm transition-all border-b-4 border-green-700 active:border-b-0";
+            } else if (item === 'wrap' && state.stageData.bananaAdded && !state.stageData.wrapped) {
+                playSound('success');
+                state.stageData.wrapped = true;
+                document.getElementById('chk-wrap').classList.remove('hidden');
+                document.getElementById('step-4').classList.add('text-emerald-600');
+                
+                document.getElementById('leaf-wrap-visual').textContent = "📦";
+                
+                document.getElementById('btn-wrap').disabled = true;
+                document.getElementById('btn-wrap').className = "bg-gray-300 text-gray-400 font-bold px-6 py-2 rounded-xl shadow-md text-sm cursor-not-allowed transition-all";
+                
+                const passBtn = document.getElementById('btn-next-3');
+                passBtn.disabled = false;
+                passBtn.className = "bg-green-500 hover:bg-green-600 text-white font-bold px-8 py-3 rounded-xl border-b-4 border-green-700 active:border-b-0 transition-all text-sm bounce-hover";
+            }
+        }
+
+        // STAGE 4 LOGIC: Raft assembly
+        function progressRaft(item) {
+            if (item === 'wood' && state.stageData.step === 0) {
+                playSound('click');
+                state.stageData.step = 1;
+                document.getElementById('raft-base-visual').textContent = "🛶";
+                document.getElementById('raft-base-visual').classList.remove('opacity-40');
+                
+                document.getElementById('stage4-instruction').textContent = "ขั้นตอน: ประดับตกแต่งด้วยดอกไม้ล้านนาแสนสวยงาม";
+                
+                document.getElementById('btn-raft-wood').disabled = true;
+                document.getElementById('btn-raft-wood').className = "bg-amber-50 border-2 border-gray-200 text-gray-400 font-bold px-4 py-2 rounded-xl text-xs cursor-not-allowed transition-all";
+                
+                document.getElementById('btn-raft-flowers').disabled = false;
+                document.getElementById('btn-raft-flowers').className = "bg-pink-100 border-2 border-pink-400 hover:bg-pink-200 text-pink-900 font-bold px-4 py-2 rounded-xl text-xs transition-all";
+            } else if (item === 'flowers' && state.stageData.step === 1) {
+                playSound('click');
+                state.stageData.step = 2;
+                document.getElementById('raft-base-visual').textContent = "🛶🌸";
+                
+                document.getElementById('stage4-instruction').textContent = "ขั้นตอน: นำกุ๊กน้อยขึ้นแท่นปล่อยแพลอยลงสู่แม่น้ำ!";
+                
+                document.getElementById('btn-raft-flowers').disabled = true;
+                document.getElementById('btn-raft-flowers').className = "bg-pink-50 border-2 border-gray-200 text-gray-400 font-bold px-4 py-2 rounded-xl text-xs cursor-not-allowed transition-all";
+                
+                document.getElementById('btn-raft-sail').disabled = false;
+                document.getElementById('btn-raft-sail').className = "bg-sky-500 hover:bg-sky-600 border-2 border-sky-700 text-white font-bold px-4 py-2 rounded-xl text-xs transition-all";
+            } else if (item === 'sail' && state.stageData.step === 2) {
+                playSound('success');
+                state.stageData.step = 3;
+                
+                document.getElementById('stage4-instruction').textContent = "เย้! แพหยวกกล้วยลอยลำพาสัตว์เลี้ยงล่องน้ำปิงได้ปลอดภัย!";
+                
+                document.getElementById('btn-raft-sail').disabled = true;
+                document.getElementById('btn-raft-sail').className = "bg-sky-50 border-2 border-gray-200 text-gray-400 font-bold px-4 py-2 rounded-xl text-xs cursor-not-allowed transition-all";
+                
+                // Show passenger
+                document.getElementById('raft-avatar-passenger').classList.remove('hidden');
+                
+                // Floating movement animation
+                const container = document.getElementById('raft-floating-container');
+                container.style.transition = 'all 4s ease-in-out';
+                container.style.transform = 'translateX(250px) rotate(2deg)';
+                
+                const passBtn = document.getElementById('btn-next-4');
+                passBtn.disabled = false;
+                passBtn.className = "bg-green-500 hover:bg-green-600 text-white font-bold px-8 py-3 rounded-xl border-b-4 border-green-700 active:border-b-0 transition-all text-sm bounce-hover";
+            }
+        }
+
+        // STAGE 5 LOGIC: Grow sucker
+        function growAction(item) {
+            if (item === 'soil' && state.stageData.step === 0) {
+                playSound('click');
+                state.stageData.step = 1;
+                document.getElementById('plant-graphic').className = "text-8xl transition-all duration-500 filter drop-shadow scale-75";
+                document.getElementById('growth-stage-bubble').textContent = "ระยะที่ 2: หน่อแตกกิ่งใบ 🌱🌿";
+                
+                document.getElementById('grow-lbl-1').className = "text-gray-400 font-normal";
+                document.getElementById('grow-lbl-2').className = "text-gray-600 font-bold";
+                
+                document.getElementById('btn-grow-soil').disabled = true;
+                document.getElementById('btn-grow-soil').className = "bg-gray-100 border border-gray-200 text-gray-400 text-xs py-2 rounded-xl font-bold cursor-not-allowed transition-all";
+                
+                document.getElementById('btn-grow-water').disabled = false;
+                document.getElementById('btn-grow-water').className = "bg-sky-100 border border-sky-400 hover:bg-sky-200 text-sky-900 text-xs py-2 rounded-xl font-bold transition-all";
+            } else if (item === 'water' && state.stageData.step === 1) {
+                playSound('bubble');
+                state.stageData.step = 2;
+                document.getElementById('plant-graphic').className = "text-8xl transition-all duration-500 filter drop-shadow scale-100";
+                document.getElementById('growth-stage-bubble').textContent = "ระยะที่ 3: ต้นกล้วยแผ่ก้านแข็งแรง 🌿🍌";
+                
+                document.getElementById('grow-lbl-2').className = "text-gray-400 font-normal";
+                document.getElementById('grow-lbl-3').className = "text-gray-600 font-bold";
+                
+                document.getElementById('btn-grow-water').disabled = true;
+                document.getElementById('btn-grow-water').className = "bg-gray-100 border border-gray-200 text-gray-400 text-xs py-2 rounded-xl font-bold cursor-not-allowed transition-all";
+                
+                document.getElementById('btn-grow-compost').disabled = false;
+                document.getElementById('btn-grow-compost').className = "bg-lime-100 border border-lime-400 hover:bg-lime-200 text-lime-900 text-xs py-2 rounded-xl font-bold transition-all";
+            } else if (item === 'compost' && state.stageData.step === 2) {
+                playSound('success');
+                state.stageData.step = 3;
+                document.getElementById('plant-graphic').textContent = "🌴🍌";
+                document.getElementById('plant-graphic').className = "text-8xl transition-all duration-500 filter drop-shadow scale-110 animate-pulse";
+                document.getElementById('growth-stage-bubble').textContent = "ระยะที่ 4: เติบโตและออกผลกล้วยหวานฉ่ำ! 🏆";
+                
+                document.getElementById('grow-lbl-3').className = "text-emerald-600 font-bold";
+                
+                document.getElementById('btn-grow-compost').disabled = true;
+                document.getElementById('btn-grow-compost').className = "bg-gray-100 border border-gray-200 text-gray-400 text-xs py-2 rounded-xl font-bold cursor-not-allowed transition-all";
+                
+                const passBtn = document.getElementById('btn-next-5');
+                passBtn.disabled = false;
+                passBtn.className = "bg-green-500 hover:bg-green-600 text-white font-bold px-8 py-3 rounded-xl border-b-4 border-green-700 active:border-b-0 transition-all text-sm bounce-hover";
+            }
+        }
+
+        // STAGE 6 LOGIC: Cook Blossom
+        function progressCook(item) {
+            if (item === 'cut' && !state.stageData.chopped) {
+                playSound('click');
+                state.stageData.chopped = true;
+                document.getElementById('cooking-pot-visual').textContent = "🥗";
+                document.getElementById('cooking-narrative').textContent = "หั่นหัวปลีเรียบร้อยแล้ว ได้ชิ้นกรอบพอดีคำ! ขั้นตอนต่อไปคือใส่หม้อปรุงต้มส้มร้อนๆ";
+                
+                document.getElementById('btn-cook-cut').disabled = true;
+                document.getElementById('btn-cook-cut').className = "bg-gray-100 text-gray-400 font-bold py-2 px-4 rounded-xl text-sm border cursor-not-allowed transition-all flex items-center justify-center gap-2";
+                
+                document.getElementById('btn-cook-boil').disabled = false;
+                document.getElementById('btn-cook-boil').className = "bg-fuchsia-500 hover:bg-fuchsia-600 text-white font-bold py-2 px-4 rounded-xl text-sm border-b-4 border-fuchsia-700 active:border-b-0 transition-all flex items-center justify-center gap-2";
+            } else if (item === 'boil' && state.stageData.chopped && !state.stageData.boiled) {
+                playSound('success');
+                state.stageData.boiled = true;
+                document.getElementById('cooking-pot-visual').textContent = "🍲";
+                document.getElementById('pot-steam').classList.remove('hidden');
+                document.getElementById('cooking-narrative').textContent = "ว้าว! ต้มแกงส้มหัวปลีกล้วยส่งกลิ่นหอมชวนน้ำลายสอเสร็จสิ้นแล้วจ้า!";
+                
+                document.getElementById('btn-cook-boil').disabled = true;
+                document.getElementById('btn-cook-boil').className = "bg-gray-100 text-gray-400 font-bold py-2 px-4 rounded-xl text-sm border cursor-not-allowed transition-all flex items-center justify-center gap-2";
+                
+                const passBtn = document.getElementById('btn-next-6');
+                passBtn.disabled = false;
+                passBtn.className = "bg-green-500 hover:bg-green-600 text-white font-bold px-8 py-3 rounded-xl border-b-4 border-green-700 active:border-b-0 transition-all text-sm bounce-hover";
+            }
+        }
+
+        // Complete a stage & unlock badge
+        function completeStage(stageIdx) {
+            playSound('success');
+            state.badges[stageIdx - 1] = true;
+            
+            // Update map badge style
+            const badge = document.getElementById(`badge-${stageIdx}`);
+            badge.classList.remove('grayscale', 'opacity-30');
+            badge.classList.add('scale-125');
+            setTimeout(() => badge.classList.remove('scale-125'), 300);
+            
+            // Check if all 6 stages are complete
+            const allComplete = state.badges.every(b => b === true);
+            if (allComplete) {
+                document.getElementById('btn-enter-minigame').classList.add('hidden');
+                document.getElementById('btn-to-victory').classList.remove('hidden');
+            }
+            
+            changeScreen('screen-map');
+        }
+
+        // Victory Certificate & QR Code Screen
+        function showVictory() {
+            changeScreen('screen-victory');
+            
+            // Trigger Confetti
+            var duration = 5 * 1000;
+            var end = Date.now() + duration;
+
+            (function frame() {
+                confetti({
+                    particleCount: 5,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0 }
+                });
+                confetti({
+                    particleCount: 5,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1 }
+                });
+
+                if (Date.now() < end) {
+                    requestAnimationFrame(frame);
+                }
+            }());
+            
+            // Update certificate info
+            if (state.currentUser) {
+                document.getElementById('cert-hero-name').textContent = state.currentUser.name;
+                document.getElementById('cert-hero-room').textContent = state.currentUser.room;
+                document.getElementById('cert-hero-num').textContent = state.currentUser.num;
+                
+                const certImg = document.getElementById('cert-avatar-img');
+                if (state.currentUser.photo) {
+                    certImg.src = state.currentUser.photo;
+                } else {
+                    certImg.src = state.currentUser.gender === 'female' 
+                      ? 'ChatGPT Image 2 มิ.ย. 2569 23_33_55.png' 
+                      : 'ChatGPT Image 2 มิ.ย. 2569 23_34_50.png';
+                }
+            }
+            
+            // Generate dynamic QR Code for mobile scanning
+            generateQRCode();
+        }
+
+        // Generate dynamic QR Code
+        function generateQRCode() {
+            if (!state.currentUser) return;
+            
+            // Total score is number of badges completed (always 6 at victory screen)
+            const score = 6;
+            const task = state.config.taskName;
+            
+            // Base API URL
+            const scriptUrl = state.config.gasUrl || 'http://offline.local';
+            
+            // Append query parameters
+            const submitUrl = `${scriptUrl}?id=${encodeURIComponent(state.currentUser.id)}&name=${encodeURIComponent(state.currentUser.name)}&room=${encodeURIComponent(state.currentUser.room)}&num=${encodeURIComponent(state.currentUser.num)}&score=${score}&task=${encodeURIComponent(task)}`;
+            
+            // Generate QR Code via QRServer API
+            const qrImg = document.getElementById('score-qr-code');
+            qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(submitUrl)}`;
+            
+            // Update status text
+            updateConfigLabels();
+        }
+
+        // Direct Score Submission via fetch API (for PC/Laptop browsers)
+        function submitScoreOnline() {
+            if (!state.config.gasUrl) {
+                alert('ระบบออนไลน์ยังไม่ได้เชื่อมต่อจ้า! คุณครูต้องเปิดตั้งค่า (ปุ่มฟันเฟืองด้านขวาบน) และนำลิงก์ Google Apps Script มาใส่ก่อนนะจ๊ะ');
+                return;
+            }
+            
+            playSound('click');
+            const score = 6;
+            const task = state.config.taskName;
+            
+            const submitUrl = `${state.config.gasUrl}?id=${encodeURIComponent(state.currentUser.id)}&name=${encodeURIComponent(state.currentUser.name)}&room=${encodeURIComponent(state.currentUser.room)}&num=${encodeURIComponent(state.currentUser.num)}&score=${score}&task=${encodeURIComponent(task)}`;
+            
+            // Perform GET fetch
+            fetch(submitUrl, { mode: 'no-cors' }) // no-cors mode to bypass CORS issues for script.google.com
+            .then(() => {
+                playSound('success');
+                alert(`🎉 ส่งคะแนนของ ${state.currentUser.name} สำเร็จเรียบร้อยแล้วจ้า! คะแนนจะถูกบันทึกลงในสเปรดชีตของคุณครูโดยทันที`);
+            })
+            .catch(err => {
+                alert(`❌ เกิดข้อผิดพลาดในการบันทึกคะแนน: ${err.message}`);
+            });
+        }
+
+        // Game variables for 2D Platformer
+        let adventureState = null;
+
+        function restartGame() {
+            playSound('success');
+            // Reset state
+            state.badges = [false, false, false, false, false, false];
+            state.currentStage = 0;
+            state.stageData = {};
+            
+            // Reset badge container DOM opacity
+            for (let i = 1; i <= 6; i++) {
+                const b = document.getElementById(`badge-${i}`);
+                if (b) {
+                    b.classList.add('grayscale', 'opacity-30');
+                }
+            }
+            
+            // Reset platformer player position & collectibles
+            if (adventureState) {
+                adventureState.player.x = 80;
+                adventureState.player.y = 150;
+                adventureState.player.vx = 0;
+                adventureState.player.vy = 0;
+                adventureState.collectedBananas = 0;
+                adventureState.hudBananas.textContent = "0";
+                adventureState.hudBadges.textContent = "0/6";
+                // Reset all blocks
+                adventureState.questBlocks.forEach(b => {
+                    b.bounceY = 0;
+                    b.bounceTimer = 0;
+                });
+                adventureState.bananas.forEach(b => b.collected = false);
+            }
+            
+            changeScreen('screen-map');
+        }
+
+        // Initialize 2D Platformer Adventure Game
+        function initAdventureGame() {
+            if (adventureState && adventureState.running) return;
+
+            const canvas = document.getElementById('adventure-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+
+            const hudBananas = document.getElementById('hud-bananas');
+            const hudBadges = document.getElementById('hud-badges');
+
+            // Keyboard and Touch keys
+            const keys = { ArrowLeft: false, ArrowRight: false, ArrowUp: false };
+            
+            // Set up event listeners once
+            if (!window.adventureKeysBound) {
+                window.adventureKeysBound = true;
+                window.addEventListener('keydown', (e) => {
+                    if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'Space', ' '].includes(e.key)) {
+                        if (state.activeScreen === 'screen-map') e.preventDefault();
+                    }
+                    if (e.key === 'ArrowLeft') keys.ArrowLeft = true;
+                    if (e.key === 'ArrowRight') keys.ArrowRight = true;
+                    if (e.key === 'ArrowUp' || e.key === ' ' || e.key === 'Spacebar') keys.ArrowUp = true;
+                });
+
+                window.addEventListener('keyup', (e) => {
+                    if (e.key === 'ArrowLeft') keys.ArrowLeft = false;
+                    if (e.key === 'ArrowRight') keys.ArrowRight = false;
+                    if (e.key === 'ArrowUp' || e.key === ' ' || e.key === 'Spacebar') keys.ArrowUp = false;
+                });
+
+                const bindTouch = (id, keyName) => {
+                    const btn = document.getElementById(id);
+                    if (btn) {
+                        btn.addEventListener('touchstart', (e) => {
+                            e.preventDefault();
+                            keys[keyName] = true;
+                        });
+                        btn.addEventListener('touchend', (e) => {
+                            e.preventDefault();
+                            keys[keyName] = false;
+                        });
+                        // mouse fallback for testing
+                        btn.addEventListener('mousedown', () => { keys[keyName] = true; });
+                        btn.addEventListener('mouseup', () => { keys[keyName] = false; });
+                        btn.addEventListener('mouseleave', () => { keys[keyName] = false; });
+                    }
+                };
+
+                bindTouch('ctrl-left', 'ArrowLeft');
+                bindTouch('ctrl-right', 'ArrowRight');
+                bindTouch('ctrl-jump', 'ArrowUp');
+            }
+
+            // Load Hero image
+            const heroImg = new Image();
+            heroImg.src = state.selectedAvatar === 'mali' 
+                ? 'ChatGPT Image 2 มิ.ย. 2569 23_33_55.png' 
+                : 'ChatGPT Image 2 มิ.ย. 2569 23_34_50.png';
+
+            const levelWidth = 3200;
+            const groundY = 340;
+
+            // platforms list
+            const platforms = [
+                // Ground segments (with gaps)
+                { x: 0, y: groundY, w: 700, h: 60 },
+                { x: 850, y: groundY, w: 850, h: 60 },
+                { x: 1850, y: groundY, w: 700, h: 60 },
+                { x: 2650, y: groundY, w: 600, h: 60 },
+
+                // Floating platforms
+                { x: 250, y: 240, w: 120, h: 20 },
+                { x: 500, y: 180, w: 120, h: 20 },
+                { x: 920, y: 240, w: 140, h: 20 },
+                { x: 1150, y: 180, w: 120, h: 20 },
+                { x: 1400, y: 220, w: 140, h: 20 },
+                { x: 1950, y: 240, w: 120, h: 20 },
+                { x: 2150, y: 180, w: 140, h: 20 },
+                { x: 2400, y: 220, w: 120, h: 20 }
+            ];
+
+            // 6 Question Blocks
+            const questBlocks = [
+                { x: 380, y: 170, w: 45, h: 45, stageIdx: 1, name: "เครือกล้วย 🍌", bounceY: 0, bounceTimer: 0 },
+                { x: 980, y: 170, w: 45, h: 45, stageIdx: 2, name: "เปลือกกล้วย ✨", bounceY: 0, bounceTimer: 0 },
+                { x: 1450, y: 130, w: 45, h: 45, stageIdx: 3, name: "ใบกล้วย 🍃", bounceY: 0, bounceTimer: 0 },
+                { x: 2000, y: 170, w: 45, h: 45, stageIdx: 4, name: "ลำต้นเทียม 🪵", bounceY: 0, bounceTimer: 0 },
+                { x: 2350, y: 130, w: 45, h: 45, stageIdx: 5, name: "หน่อกล้วย 🌱", bounceY: 0, bounceTimer: 0 },
+                { x: 2750, y: 170, w: 45, h: 45, stageIdx: 6, name: "ปลีกล้วย 🌸", bounceY: 0, bounceTimer: 0 }
+            ];
+
+            // Flagpole
+            const flagpole = { x: 3100, y: groundY - 220, w: 10, h: 220 };
+
+            // Collectible Bananas
+            const bananas = (adventureState && adventureState.bananas) ? adventureState.bananas : [];
+            if (bananas.length === 0) {
+                for (let i = 180; i < levelWidth - 300; i += 180) {
+                    // place bananas above ground/platforms
+                    const isNearGap = (i > 680 && i < 870) || (i > 1680 && i < 1870) || (i > 2530 && i < 2670);
+                    const bananaY = isNearGap ? 200 : (240 - Math.random() * 80);
+                    bananas.push({ x: i, y: bananaY, w: 20, h: 20, collected: false });
+                }
+            }
+
+            const player = (adventureState && adventureState.player) ? adventureState.player : {
+                x: 80,
+                y: 150,
+                vx: 0,
+                vy: 0,
+                width: 38,
+                height: 52,
+                grounded: false,
+                jumping: false
+            };
+
+            const collectedBananas = (adventureState && adventureState.collectedBananas) ? adventureState.collectedBananas : 0;
+
+            // Leaf particles for atmospheric detail
+            const leaves = [];
+            for (let i = 0; i < 12; i++) {
+                leaves.push({
+                    x: Math.random() * 800,
+                    y: Math.random() * 400,
+                    r: 4 + Math.random() * 5,
+                    speedY: 0.5 + Math.random() * 0.8,
+                    speedX: -0.4 + Math.random() * 0.8,
+                    angle: Math.random() * Math.PI * 2,
+                    spin: -0.01 + Math.random() * 0.02
+                });
+            }
+
+            adventureState = {
+                canvas,
+                ctx,
+                hudBananas,
+                hudBadges,
+                keys,
+                player,
+                cameraX: 0,
+                running: true,
+                heroImg,
+                levelWidth,
+                groundY,
+                platforms,
+                questBlocks,
+                flagpole,
+                bananas,
+                collectedBananas,
+                leaves,
+                warningBubbleText: "",
+                warningBubbleTimer: 0
+            };
+
+            // Update badge HUD immediately
+            hudBadges.textContent = `${state.badges.filter(Boolean).length}/6`;
+            hudBananas.textContent = collectedBananas;
+
+            // Start animation loop
+            animateAdventure();
+        }
+
+        // Main game loops
+        function animateAdventure() {
+            if (!adventureState || !adventureState.running) return;
+
+            updateAdventurePhysics();
+            drawAdventureFrame();
+
+            requestAnimationFrame(animateAdventure);
+        }
+
+        function updateAdventurePhysics() {
+            const s = adventureState;
+            const p = s.player;
+
+            // Left / Right Movement
+            if (s.keys.ArrowLeft) {
+                p.vx = -4.5;
+            } else if (s.keys.ArrowRight) {
+                p.vx = 4.5;
+            } else {
+                p.vx *= 0.82; // smooth friction
+            }
+
+            // Jump
+            if (s.keys.ArrowUp && p.grounded && !p.jumping) {
+                playSound('clean');
+                p.vy = -12.2;
+                p.grounded = false;
+                p.jumping = true;
+            }
+
+            // Apply Gravity
+            p.vy += 0.58;
+
+            // Apply velocity
+            p.x += p.vx;
+            p.y += p.vy;
+
+            // Borders Check
+            if (p.x < 10) p.x = 10;
+            if (p.x > s.levelWidth - 50) p.x = s.levelWidth - 50;
+
+            // Gap death respawn
+            if (p.y > 430) {
+                playSound('click');
+                // Respawn at last safe checkpoint
+                let respawnX = 80;
+                if (p.x > 2600) respawnX = 2700;
+                else if (p.x > 1800) respawnX = 1900;
+                else if (p.x > 850) respawnX = 900;
+                
+                p.x = respawnX;
+                p.y = 100;
+                p.vx = 0;
+                p.vy = 0;
+                p.grounded = false;
+                p.jumping = false;
+                
+                // Deduct 2 bananas as a fun penalty
+                s.collectedBananas = Math.max(0, s.collectedBananas - 2);
+                s.hudBananas.textContent = s.collectedBananas;
+                return;
+            }
+
+            // Reset grounded check
+            p.grounded = false;
+
+            // Collision check with Platforms
+            s.platforms.forEach(plat => {
+                // AABB Check
+                if (p.x + p.width > plat.x && p.x < plat.x + plat.w) {
+                    if (p.y + p.height > plat.y && p.y + p.height - p.vy <= plat.y + 12) {
+                        if (p.vy >= 0) { // falling down
+                            p.y = plat.y - p.height;
+                            p.vy = 0;
+                            p.grounded = true;
+                            p.jumping = false;
+                        }
+                    }
+                }
+            });
+
+            // Collision check with Quest Blocks
+            s.questBlocks.forEach(block => {
+                // Update block bounce animation
+                if (block.bounceTimer > 0) {
+                    block.bounceTimer--;
+                    block.bounceY = -Math.sin((block.bounceTimer / 10) * Math.PI) * 12;
+                } else {
+                    block.bounceY = 0;
+                }
+
+                // Check collision
+                if (p.x + p.width > block.x && p.x < block.x + block.w) {
+                    // 1. Landing on top of block
+                    if (p.y + p.height > block.y && p.y + p.height - p.vy <= block.y + 10) {
+                        if (p.vy >= 0) {
+                            p.y = block.y - p.height;
+                            p.vy = 0;
+                            p.grounded = true;
+                            p.jumping = false;
+                        }
+                    }
+                    // 2. Hitting block from below (Moong/โหม่ง)
+                    else if (p.y >= block.y + block.h - 10 && p.y + p.vy <= block.y + block.h + 5) {
+                        if (p.vy < 0) { // moving upwards
+                            p.vy = 2; // bounce player down
+                            
+                            // Trigger bounce effect
+                            if (block.bounceTimer === 0) {
+                                block.bounceTimer = 10;
+                            }
+                            
+                            // Trigger mini-game if not already completed
+                            if (!state.badges[block.stageIdx - 1]) {
+                                playSound('success');
+                                s.running = false;
+                                
+                                // Set player position right below block for returning safely
+                                p.y = block.y + block.h + 8;
+                                p.vx = 0;
+                                p.vy = 0;
+
+                                // Enter mini-game stage
+                                state.currentStage = block.stageIdx;
+                                setupStage(block.stageIdx);
+                                changeScreen(`stage-${block.stageIdx}`);
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Collect bananas
+            s.bananas.forEach(b => {
+                if (!b.collected && p.x + p.width > b.x && p.x < b.x + b.w && p.y + p.height > b.y && p.y < b.y + b.h) {
+                    b.collected = true;
+                    s.collectedBananas++;
+                    playSound('bubble');
+                    s.hudBananas.textContent = s.collectedBananas;
+                }
+            });
+
+            // Flagpole Check (Victory target)
+            if (p.x + p.width > s.flagpole.x && p.x < s.flagpole.x + s.flagpole.w) {
+                const completedCount = state.badges.filter(Boolean).length;
+                if (completedCount === 6) {
+                    playSound('success');
+                    s.running = false;
+                    showVictory();
+                } else {
+                    // Push player back
+                    p.x = s.flagpole.x - p.width - 15;
+                    p.vx = -2;
+                    // Trigger warning bubble
+                    s.warningBubbleText = "สะสมตราประทับให้ครบ 6 ด่านก่อนนะจ๊ะ! 🍌";
+                    s.warningBubbleTimer = 120; // 2 seconds
+                }
+            }
+
+            // Decrement warning bubble timer
+            if (s.warningBubbleTimer > 0) {
+                s.warningBubbleTimer--;
+            }
+
+            // Camera follow player (center player)
+            s.cameraX = p.x - 320;
+            if (s.cameraX < 0) s.cameraX = 0;
+            if (s.cameraX > s.levelWidth - 800) s.cameraX = s.levelWidth - 800;
+        }
+
+        function drawAdventureFrame() {
+            const s = adventureState;
+            const ctx = s.ctx;
+            const p = s.player;
+            const camX = s.cameraX;
+
+            // Clear Screen
+            ctx.clearRect(0, 0, 800, 400);
+
+            // Draw Sky Parallax Background
+            const skyGrad = ctx.createLinearGradient(0, 0, 0, 400);
+            skyGrad.addColorStop(0, '#7dd3fc'); // sky blue
+            skyGrad.addColorStop(0.7, '#bae6fd'); // light blue
+            skyGrad.addColorStop(1, '#fef08a'); // yellow morning horizon
+            ctx.fillStyle = skyGrad;
+            ctx.fillRect(0, 0, 800, 400);
+
+            // Draw Parallax Clouds (scrolled relative to camera)
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+            for (let i = 0; i < 5; i++) {
+                const cloudX = (i * 650 - camX * 0.35) % 950 - 100;
+                const cloudY = 40 + (i % 2) * 35;
+                ctx.beginPath();
+                ctx.arc(cloudX, cloudY, 30, 0, Math.PI * 2);
+                ctx.arc(cloudX + 20, cloudY - 10, 35, 0, Math.PI * 2);
+                ctx.arc(cloudX + 45, cloudY, 25, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Draw distant vector mountains / hills
+            ctx.fillStyle = '#86efac'; // light green
+            for (let i = 0; i < 6; i++) {
+                const hillX = (i * 500 - camX * 0.5) % 1000 - 150;
+                ctx.beginPath();
+                ctx.moveTo(hillX, 340);
+                ctx.lineTo(hillX + 250, 180);
+                ctx.lineTo(hillX + 500, 340);
+                ctx.fill();
+            }
+
+            // Draw distant parallax banana trees in the background
+            ctx.fillStyle = '#854d0e'; // brown trunk
+            for (let i = 0; i < 8; i++) {
+                const treeX = (i * 420 - camX * 0.45) % 1200 - 100;
+                if (treeX < -60 || treeX > 860) continue;
+                
+                const trunkW = 10;
+                const trunkH = 80;
+                const treeY = 340 - trunkH;
+                
+                // Draw slightly curved trunk
+                ctx.beginPath();
+                ctx.moveTo(treeX - trunkW/2, 340);
+                ctx.quadraticCurveTo(treeX, treeY + trunkH/2, treeX, treeY);
+                ctx.lineTo(treeX + trunkW, treeY);
+                ctx.quadraticCurveTo(treeX + trunkW/2, treeY + trunkH/2, treeX + trunkW/2, 340);
+                ctx.closePath();
+                ctx.fill();
+
+                // Draw 3 big green leaves on trunk top
+                ctx.fillStyle = '#22c55e'; // green leaf
+                ctx.beginPath();
+                // Left leaf
+                ctx.ellipse(treeX - 15, treeY, 25, 7, -Math.PI / 6, 0, Math.PI * 2);
+                // Right leaf
+                ctx.ellipse(treeX + 15, treeY, 25, 7, Math.PI / 6, 0, Math.PI * 2);
+                // Center top leaf
+                ctx.ellipse(treeX, treeY - 10, 8, 20, 0, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Draw atmospheric floating banana leaves / forest particles
+            ctx.fillStyle = 'rgba(163, 230, 53, 0.4)'; // semi-transparent lime/green leaves
+            s.leaves.forEach(leaf => {
+                leaf.y += leaf.speedY;
+                leaf.x += leaf.speedX + Math.sin(Date.now() / 400 + leaf.y / 20) * 0.3;
+                leaf.angle += leaf.spin;
+
+                if (leaf.y > 410) {
+                    leaf.y = -20;
+                    leaf.x = Math.random() * 800;
+                }
+                if (leaf.x > 820) leaf.x = 0;
+                if (leaf.x < -20) leaf.x = 800;
+
+                ctx.save();
+                ctx.translate(leaf.x, leaf.y);
+                ctx.rotate(leaf.angle);
+                // Draw simple double-arc leaf vector
+                ctx.beginPath();
+                ctx.ellipse(0, 0, leaf.r * 1.8, leaf.r * 0.8, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            });
+
+            // Draw Platforms & Ground with high quality textures
+            s.platforms.forEach(plat => {
+                const x = plat.x - camX;
+                if (x + plat.w < 0 || x > 800) return; // viewport culling
+
+                if (plat.h === 60) {
+                    // Ground Segment
+                    // 1. Grass top gradient
+                    const grassGrad = ctx.createLinearGradient(x, plat.y, x, plat.y + 15);
+                    grassGrad.addColorStop(0, '#4ade80'); // bright green
+                    grassGrad.addColorStop(1, '#16a34a'); // deep green
+                    ctx.fillStyle = grassGrad;
+                    ctx.fillRect(x, plat.y, plat.w, 15);
+
+                    // 2. Soil base gradient
+                    const soilGrad = ctx.createLinearGradient(x, plat.y + 15, x, plat.y + plat.h);
+                    soilGrad.addColorStop(0, '#a16207'); // lighter brown
+                    soilGrad.addColorStop(1, '#451a03'); // dark brown
+                    ctx.fillStyle = soilGrad;
+                    ctx.fillRect(x, plat.y + 15, plat.w, plat.h - 15);
+
+                    // 3. Dirt rocks details
+                    ctx.fillStyle = 'rgba(69, 26, 3, 0.4)';
+                    for (let d = x + 15; d < x + plat.w; d += 60) {
+                        ctx.beginPath();
+                        ctx.arc(d, plat.y + 30, 8, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.beginPath();
+                        ctx.arc(d + 25, plat.y + 42, 5, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+
+                    // 4. Draw cartoon grass blades pattern sticking out of ground
+                    ctx.strokeStyle = '#15803d';
+                    ctx.lineWidth = 2.5;
+                    for (let gX = x + 10; gX < x + plat.w; gX += 20) {
+                        ctx.beginPath();
+                        ctx.moveTo(gX, plat.y);
+                        ctx.lineTo(gX - 3, plat.y - 6);
+                        ctx.moveTo(gX, plat.y);
+                        ctx.lineTo(gX + 3, plat.y - 7);
+                        ctx.stroke();
+                    }
+                } else {
+                    // Floating wooden platform (gradient and 3D bevels)
+                    const platGrad = ctx.createLinearGradient(x, plat.y, x, plat.y + plat.h);
+                    platGrad.addColorStop(0, '#d97706'); // lighter amber/wood
+                    platGrad.addColorStop(1, '#78350f'); // darker wood
+                    ctx.fillStyle = platGrad;
+                    
+                    ctx.beginPath();
+                    ctx.roundRect(x, plat.y, plat.w, plat.h, 6);
+                    ctx.fill();
+
+                    // top shine highlight border
+                    ctx.strokeStyle = '#fef08a';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(x + 2, plat.y + 1.5);
+                    ctx.lineTo(x + plat.w - 2, plat.y + 1.5);
+                    ctx.stroke();
+
+                    // bottom shadow border
+                    ctx.strokeStyle = '#451a03';
+                    ctx.lineWidth = 2.5;
+                    ctx.beginPath();
+                    ctx.moveTo(x + 1, plat.y + plat.h - 1);
+                    ctx.lineTo(x + plat.w - 1, plat.y + plat.h - 1);
+                    ctx.stroke();
+                }
+            });
+
+            // Draw Collectible Bananas
+            s.bananas.forEach(banana => {
+                if (banana.collected) return;
+                const x = banana.x - camX;
+                if (x + banana.w < 0 || x > 800) return;
+
+                // Simple floating animation offset
+                const floatOffset = Math.sin(Date.now() / 150 + banana.x) * 3;
+
+                ctx.font = '22px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('🍌', x + 10, banana.y + 10 + floatOffset);
+            });
+
+            // Draw 6 Quest Blocks
+            s.questBlocks.forEach(block => {
+                const x = block.x - camX;
+                const y = block.y + block.bounceY;
+                if (x + block.w < 0 || x > 800) return;
+
+                const isCompleted = state.badges[block.stageIdx - 1];
+
+                if (isCompleted) {
+                    // Completed block (Emerald checked)
+                    const grad = ctx.createLinearGradient(x, y, x, y + block.h);
+                    grad.addColorStop(0, '#34d399'); // emerald light
+                    grad.addColorStop(1, '#059669'); // emerald dark
+                    ctx.fillStyle = grad;
+                    
+                    ctx.beginPath();
+                    ctx.roundRect(x, y, block.w, block.h, 8);
+                    ctx.fill();
+                    
+                    // Bevel border
+                    ctx.strokeStyle = '#a7f3d0';
+                    ctx.lineWidth = 2.5;
+                    ctx.strokeRect(x + 2, y + 2, block.w - 4, block.h - 4);
+                    
+                    // Outer border
+                    ctx.strokeStyle = '#064e3b';
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(x, y, block.w, block.h);
+                    
+                    // Draw checkmark
+                    ctx.font = 'bold 20px Arial';
+                    ctx.fillStyle = '#ffffff';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('✓', x + block.w / 2, y + block.h / 2);
+                } else {
+                    // Question mark block (Yellow active with pulsing animation)
+                    const pulse = 1 + Math.sin(Date.now() / 150) * 0.05;
+                    const w = block.w * pulse;
+                    const h = block.h * pulse;
+                    const dx = x - (w - block.w) / 2;
+                    const dy = y - (h - block.h) / 2;
+
+                    const grad = ctx.createLinearGradient(dx, dy, dx, dy + h);
+                    grad.addColorStop(0, '#fbbf24'); // yellow light
+                    grad.addColorStop(1, '#d97706'); // orange dark
+                    ctx.fillStyle = grad;
+                    
+                    ctx.beginPath();
+                    ctx.roundRect(dx, dy, w, h, 8);
+                    ctx.fill();
+                    
+                    // Bevel border
+                    ctx.strokeStyle = '#fef08a';
+                    ctx.lineWidth = 2.5;
+                    ctx.strokeRect(dx + 2, dy + 2, w - 4, h - 4);
+                    
+                    // Outer border
+                    ctx.strokeStyle = '#78350f';
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(dx, dy, w, h);
+                    
+                    // Draw ? letter with text shadow
+                    ctx.save();
+                    ctx.font = 'bold 24px Mali';
+                    ctx.fillStyle = '#ffffff';
+                    ctx.shadowColor = 'rgba(0,0,0,0.3)';
+                    ctx.shadowBlur = 4;
+                    ctx.shadowOffsetX = 1;
+                    ctx.shadowOffsetY = 2;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('?', dx + w / 2, dy + h / 2);
+                    ctx.restore();
+                }
+
+                // Draw stage number label above
+                ctx.fillStyle = '#1e293b';
+                ctx.font = 'bold 10px Mali';
+                ctx.textAlign = 'center';
+                ctx.fillText(`ด่าน ${block.stageIdx}`, x + block.w/2, y - 10);
+            });
+
+            // Draw Flagpole (Victory target)
+            const flagX = s.flagpole.x - camX;
+            
+            // Metal pole gradient
+            const poleGrad = ctx.createLinearGradient(flagX, s.flagpole.y, flagX + s.flagpole.w, s.flagpole.y);
+            poleGrad.addColorStop(0, '#94a3b8');
+            poleGrad.addColorStop(0.5, '#f1f5f9'); // highlight shine
+            poleGrad.addColorStop(1, '#475569');
+            ctx.fillStyle = poleGrad;
+            ctx.fillRect(flagX, s.flagpole.y, s.flagpole.w, s.flagpole.h);
+
+            // flag banner (wavy waving flag effect!)
+            const flagWave = Math.sin(Date.now() / 200) * 4;
+            ctx.fillStyle = '#ef4444'; // red flag
+            ctx.beginPath();
+            ctx.moveTo(flagX + s.flagpole.w, s.flagpole.y);
+            ctx.quadraticCurveTo(flagX - 15, s.flagpole.y + 10 + flagWave, flagX - 35, s.flagpole.y + 20);
+            ctx.quadraticCurveTo(flagX - 15, s.flagpole.y + 30 - flagWave, flagX + s.flagpole.w, s.flagpole.y + 40);
+            ctx.closePath();
+            ctx.fill();
+
+            // gold sphere at top of flagpole
+            const sphereGrad = ctx.createRadialGradient(flagX + 5, s.flagpole.y - 2, 2, flagX + 5, s.flagpole.y - 2, 8);
+            sphereGrad.addColorStop(0, '#fef08a'); // shining gold center
+            sphereGrad.addColorStop(1, '#b45309'); // dark bronze edge
+            ctx.fillStyle = sphereGrad;
+            ctx.beginPath();
+            ctx.arc(flagX + 5, s.flagpole.y, 8, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Draw character drop shadow for depth
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+            ctx.beginPath();
+            ctx.ellipse(p.x - camX + p.width/2, p.y + p.height - 2, p.width/2 - 2, 4, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Draw Player Character
+            ctx.drawImage(s.heroImg, p.x - camX, p.y, p.width, p.height);
+
+            // Draw Player Name tag
+            ctx.font = 'bold 12px Mali';
+            ctx.fillStyle = '#0f172a';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'bottom';
+            // white outline for visibility
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 3;
+            const nameLabel = state.currentUser ? state.currentUser.name.split(' ')[0] : 'ผู้พิทักษ์';
+            ctx.strokeText(nameLabel, p.x - camX + p.width / 2, p.y - 4);
+            ctx.fillText(nameLabel, p.x - camX + p.width / 2, p.y - 4);
+
+            // Draw warning bubble if active
+            if (s.warningBubbleTimer > 0 && s.warningBubbleText) {
+                const bubbleW = 220;
+                const bubbleH = 35;
+                const bubbleX = p.x - camX + p.width / 2 - bubbleW / 2;
+                const bubbleY = p.y - 50;
+
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+                ctx.strokeStyle = '#ef4444';
+                ctx.lineWidth = 2;
+                // Round rect
+                ctx.beginPath();
+                ctx.roundRect(bubbleX, bubbleY, bubbleW, bubbleH, 8);
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.font = '10px Mali';
+                ctx.fillStyle = '#ef4444';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(s.warningBubbleText, bubbleX + bubbleW / 2, bubbleY + bubbleH / 2);
+            }
+        }
+    </script>
+</body>
+</html>

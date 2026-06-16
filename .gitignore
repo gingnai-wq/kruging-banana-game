@@ -1,0 +1,10 @@
+node_modules/
+kruging-banana-game.zip
+.gemini/
+.vercel/
+deploy_*.js
+find_kru_aom.js
+replace_names.js
+test_fetch.js
+process_all.js
+images.js
